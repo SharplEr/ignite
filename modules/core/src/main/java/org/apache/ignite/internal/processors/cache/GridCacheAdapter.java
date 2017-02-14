@@ -4229,7 +4229,6 @@ public abstract class GridCacheAdapter<K, V> implements IgniteInternalCache<K, V
                     }
 
                     if (X.hasCause(e, ClusterTopologyCheckedException.class) && i != retries - 1) {
-                        ClusterTopologyCheckedException topErr = e.getCause(ClusterTopologyCheckedException.class);
                         AffinityTopologyVersion topVer = tx.topologyVersion();
 
                         assert topVer != null && topVer.topologyVersion() > 0 : tx;
@@ -4942,8 +4941,6 @@ public abstract class GridCacheAdapter<K, V> implements IgniteInternalCache<K, V
                     }
                     catch (IgniteCheckedException e) {
                         if (X.hasCause(e, ClusterTopologyCheckedException.class) && --retries > 0) {
-                            ClusterTopologyCheckedException topErr = e.getCause(ClusterTopologyCheckedException.class);
-
                             IgniteTxLocalAdapter tx = AsyncOpRetryFuture.this.tx;
 
                             assert tx != null;
