@@ -78,7 +78,6 @@ import org.apache.ignite.internal.IgniteKernal;
 import org.apache.ignite.internal.IgniteTransactionsEx;
 import org.apache.ignite.internal.IgnitionEx;
 import org.apache.ignite.internal.cluster.ClusterTopologyCheckedException;
-import org.apache.ignite.internal.cluster.ClusterTopologyServerNotFoundException;
 import org.apache.ignite.internal.cluster.IgniteClusterEx;
 import org.apache.ignite.internal.processors.affinity.AffinityTopologyVersion;
 import org.apache.ignite.internal.processors.cache.affinity.GridCacheAffinityImpl;
@@ -4256,17 +4255,12 @@ public abstract class GridCacheAdapter<K, V> implements IgniteInternalCache<K, V
                     }
 
                     if (X.hasCause(e, ClusterTopologyCheckedException.class) && i != retries - 1) {
-                        ClusterTopologyCheckedException topErr = e.getCause(ClusterTopologyCheckedException.class);
+                        AffinityTopologyVersion topVer = tx.topologyVersion();
 
-                        if (!(topErr instanceof ClusterTopologyServerNotFoundException)) {
-                            AffinityTopologyVersion topVer = tx.topologyVersion();
+                        assert topVer != null && topVer.topologyVersion() > 0 : tx;
 
-                            assert topVer != null && topVer.topologyVersion() > 0 : tx;
-
-                            ctx.affinity().affinityReadyFuture(topVer.topologyVersion() + 1).get();
-
-                            continue;
-                        }
+                        ctx.affinity().affinityReadyFuture(topVer.topologyVersion() + 1).get();
+                        continue;
                     }
 
                     throw e;
@@ -4973,38 +4967,34 @@ public abstract class GridCacheAdapter<K, V> implements IgniteInternalCache<K, V
                     }
                     catch (IgniteCheckedException e) {
                         if (X.hasCause(e, ClusterTopologyCheckedException.class) && --retries > 0) {
-                            ClusterTopologyCheckedException topErr = e.getCause(ClusterTopologyCheckedException.class);
+                            IgniteTxLocalAdapter tx = AsyncOpRetryFuture.this.tx;
 
-                            if (!(topErr instanceof ClusterTopologyServerNotFoundException)) {
-                                IgniteTxLocalAdapter tx = AsyncOpRetryFuture.this.tx;
+                            assert tx != null;
 
-                                assert tx != null;
+                            AffinityTopologyVersion topVer = tx.topologyVersion();
 
-                                AffinityTopologyVersion topVer = tx.topologyVersion();
+                            assert topVer != null && topVer.topologyVersion() > 0 : tx;
 
-                                assert topVer != null && topVer.topologyVersion() > 0 : tx;
+                            IgniteInternalFuture<?> topFut =
+                                ctx.affinity().affinityReadyFuture(topVer.topologyVersion() + 1);
 
-                                IgniteInternalFuture<?> topFut =
-                                    ctx.affinity().affinityReadyFuture(topVer.topologyVersion() + 1);
+                            topFut.listen(new IgniteInClosure<IgniteInternalFuture<?>>() {
+                                @Override public void apply(IgniteInternalFuture<?> topFut) {
+                                    try {
+                                        topFut.get();
 
-                                topFut.listen(new IgniteInClosure<IgniteInternalFuture<?>>() {
-                                    @Override public void apply(IgniteInternalFuture<?> topFut) {
-                                        try {
-                                            topFut.get();
-
-                                            execute();
-                                        }
-                                        catch (IgniteCheckedException e) {
-                                            onDone(e);
-                                        }
-                                        finally {
-                                            ctx.shared().txContextReset();
-                                        }
+                                        execute();
                                     }
-                                });
+                                    catch (IgniteCheckedException e) {
+                                        onDone(e);
+                                    }
+                                    finally {
+                                        ctx.shared().txContextReset();
+                                    }
+                                }
+                            });
 
-                                return;
-                            }
+                            return;
                         }
 
                         onDone(e);
