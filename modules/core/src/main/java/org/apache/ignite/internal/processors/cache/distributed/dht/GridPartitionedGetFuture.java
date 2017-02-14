@@ -30,7 +30,8 @@ import org.apache.ignite.IgniteLogger;
 import org.apache.ignite.cluster.ClusterNode;
 import org.apache.ignite.internal.IgniteInternalFuture;
 import org.apache.ignite.internal.cluster.ClusterTopologyCheckedException;
-import org.apache.ignite.internal.cluster.ClusterTopologyServerNotFoundException;
+import org.apache.ignite.internal.cluster.ClusterTopologyLocalException;
+import org.apache.ignite.internal.cluster.ClusterTopologyServerNotFoundLocalException;
 import org.apache.ignite.internal.processors.affinity.AffinityTopologyVersion;
 import org.apache.ignite.internal.processors.cache.CacheObject;
 import org.apache.ignite.internal.processors.cache.GridCacheContext;
@@ -177,7 +178,7 @@ public class GridPartitionedGetFuture<K, V> extends CacheDistributedGetFutureAda
                 if (f.node().id().equals(nodeId)) {
                     found = true;
 
-                    f.onNodeLeft(new ClusterTopologyCheckedException("Remote node left grid (will retry): " + nodeId));
+                    f.onNodeLeftWithClusterTopologyException();
                 }
             }
 
@@ -238,7 +239,7 @@ public class GridPartitionedGetFuture<K, V> extends CacheDistributedGetFutureAda
         Collection<ClusterNode> cacheNodes = CU.affinityNodes(cctx, topVer);
 
         if (cacheNodes.isEmpty()) {
-            onDone(new ClusterTopologyServerNotFoundException("Failed to map keys for cache " +
+            onDone(new ClusterTopologyServerNotFoundLocalException("Failed to map keys for cache " +
                 "(all partition nodes left the grid) [topVer=" + topVer + ", cache=" + cctx.name() + ']'));
 
             return;
@@ -352,8 +353,8 @@ public class GridPartitionedGetFuture<K, V> extends CacheDistributedGetFutureAda
                 }
                 catch (IgniteCheckedException e) {
                     // Fail the whole thing.
-                    if (e instanceof ClusterTopologyCheckedException)
-                        fut.onNodeLeft((ClusterTopologyCheckedException)e);
+                    if (e instanceof ClusterTopologyCheckedException || e instanceof ClusterTopologyLocalException)
+                        fut.onNodeLeftWithClusterTopologyException();
                     else
                         fut.onResult(e);
                 }
@@ -407,7 +408,7 @@ public class GridPartitionedGetFuture<K, V> extends CacheDistributedGetFutureAda
 
         if (keys != null && keys.containsKey(key)) {
             if (REMAP_CNT_UPD.incrementAndGet(this) > MAX_REMAP_CNT) {
-                onDone(new ClusterTopologyCheckedException("Failed to remap key to a new node after " +
+                onDone(new ClusterTopologyLocalException("Failed to remap key to a new node after " +
                     MAX_REMAP_CNT + " attempts (key got remapped to the same node) [key=" + key + ", node=" +
                     U.toShortString(node) + ", mappings=" + mapped + ']'));
 
@@ -658,7 +659,7 @@ public class GridPartitionedGetFuture<K, V> extends CacheDistributedGetFutureAda
          * @param e Failure exception.
          */
         @SuppressWarnings("UnusedParameters")
-        synchronized void onNodeLeft(ClusterTopologyCheckedException e) {
+        synchronized void onNodeLeftWithClusterTopologyException() {
             if (remapped)
                 return;
 
