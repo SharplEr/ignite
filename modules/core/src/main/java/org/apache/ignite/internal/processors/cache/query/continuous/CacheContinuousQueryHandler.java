@@ -50,6 +50,7 @@ import org.apache.ignite.internal.GridKernalContext;
 import org.apache.ignite.internal.IgniteDeploymentCheckedException;
 import org.apache.ignite.internal.IgniteInternalFuture;
 import org.apache.ignite.internal.cluster.ClusterTopologyCheckedException;
+import org.apache.ignite.internal.cluster.ClusterTopologyLocalException;
 import org.apache.ignite.internal.managers.communication.GridIoPolicy;
 import org.apache.ignite.internal.managers.deployment.GridDeployment;
 import org.apache.ignite.internal.managers.deployment.GridDeploymentInfo;
@@ -803,7 +804,7 @@ public class CacheContinuousQueryHandler<K, V> implements GridContinuousHandler 
                     ctx.continuous().addNotification(nodeId, routineId, entry, topic, sync, true);
             }
         }
-        catch (ClusterTopologyCheckedException ex) {
+        catch (ClusterTopologyLocalException ex) {
             if (log.isDebugEnabled())
                 log.debug("Failed to send event notification to node, node left cluster " +
                     "[node=" + nodeId + ", err=" + ex + ']');
@@ -1253,7 +1254,7 @@ public class CacheContinuousQueryHandler<K, V> implements GridContinuousHandler 
                                 try {
                                     cctx.io().send(node, msg, GridIoPolicy.SYSTEM_POOL);
                                 }
-                                catch (ClusterTopologyCheckedException ignored) {
+                                catch (ClusterTopologyLocalException ignored) {
                                     IgniteLogger log = ctx.log(getClass());
 
                                     if (log.isDebugEnabled())

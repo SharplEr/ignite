@@ -1183,7 +1183,7 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
                                         msg,
                                         ackC);
                                 }
-                                catch (ClusterTopologyCheckedException ignored) {
+                                catch (ClusterTopologyLocalException ignored) {
                                     if (log.isDebugEnabled())
                                         log.debug("Failed to send notification to node (is node alive?): " + nodeId);
                                 }
