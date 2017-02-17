@@ -31,14 +31,8 @@ import org.apache.ignite.lang.IgniteInClosure;
  * Future that is completed at creation time.
  */
 public class GridFinishedFuture<T> implements IgniteInternalFuture<T> {
-    /** */
-    private static final byte ERR = 1;
-
-    /** */
-    private static final byte RES = 2;
-
-    /** */
-    private final byte resFlag;
+    /** If true then res instanceof T. If false then res instanceof Throwable. */
+    private final boolean haveResult;
 
     /** Complete value. */
     private final Object res;
@@ -51,7 +45,7 @@ public class GridFinishedFuture<T> implements IgniteInternalFuture<T> {
      */
     public GridFinishedFuture() {
         res = null;
-        resFlag = RES;
+        haveResult = true;
     }
 
     /**
@@ -61,7 +55,7 @@ public class GridFinishedFuture<T> implements IgniteInternalFuture<T> {
      */
     public GridFinishedFuture(T t) {
         res = t;
-        resFlag = RES;
+        haveResult = true;
     }
 
     /**
@@ -69,18 +63,18 @@ public class GridFinishedFuture<T> implements IgniteInternalFuture<T> {
      */
     public GridFinishedFuture(Throwable err) {
         res = err;
-        resFlag = ERR;
+        haveResult = false;
     }
 
     /** {@inheritDoc} */
     @Override public Throwable error() {
-        return (resFlag == ERR) ? (Throwable)res : null;
+        return haveResult ? (Throwable)res : null;
     }
 
     /** {@inheritDoc} */
     @SuppressWarnings("unchecked")
     @Override public T result() {
-        return resFlag == RES ? (T)res : null;
+        return haveResult ? (T)res : null;
     }
 
     /** {@inheritDoc} */
@@ -111,7 +105,7 @@ public class GridFinishedFuture<T> implements IgniteInternalFuture<T> {
     /** {@inheritDoc} */
     @SuppressWarnings("unchecked")
     @Override public T get() throws IgniteCheckedException {
-        if (resFlag == ERR)
+        if (!haveResult)
             throw U.cast((Throwable)res);
 
         return (T)res;
