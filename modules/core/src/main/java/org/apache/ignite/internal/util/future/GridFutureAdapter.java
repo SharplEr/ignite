@@ -53,13 +53,7 @@ public class GridFutureAdapter<R> extends AbstractQueuedSynchronizer implements 
     private static final int DONE = 2;
 
     /** */
-    private static final byte ERR = 1;
-
-    /** */
-    private static final byte RES = 2;
-
-    /** */
-    private byte resFlag;
+    private boolean haveResult;
 
     /** Result. */
     @GridToStringInclude(sensitive = true)
@@ -106,12 +100,12 @@ public class GridFutureAdapter<R> extends AbstractQueuedSynchronizer implements 
 
     /** {@inheritDoc} */
     @Override public Throwable error() {
-        return (resFlag == ERR) ? (Throwable)res : null;
+        return !haveResult ? (Throwable)res : null;
     }
 
     /** {@inheritDoc} */
     @Override public R result() {
-        return resFlag == RES ? (R)res : null;
+        return haveResult ? (R)res : null;
     }
 
     /** {@inheritDoc} */
@@ -164,9 +158,9 @@ public class GridFutureAdapter<R> extends AbstractQueuedSynchronizer implements 
             if (getState() == CANCELLED)
                 throw new IgniteFutureCancelledCheckedException("Future was cancelled: " + this);
 
-            assert resFlag != 0;
+            assert getState() != 0;
 
-            if (resFlag == ERR)
+            if (!haveResult)
                 throw U.cast((Throwable)res);
 
             return (R)res;
@@ -192,9 +186,9 @@ public class GridFutureAdapter<R> extends AbstractQueuedSynchronizer implements 
         if (getState() == CANCELLED)
             throw new IgniteFutureCancelledCheckedException("Future was cancelled: " + this);
 
-        assert resFlag != 0;
+        assert getState() != 0;
 
-        if (resFlag == ERR)
+        if (!haveResult)
             throw U.cast((Throwable)res);
 
         return (R)res;
@@ -303,7 +297,7 @@ public class GridFutureAdapter<R> extends AbstractQueuedSynchronizer implements 
      */
     public boolean isFailed() {
         // Must read endTime first.
-        return endTime != 0 && resFlag == ERR;
+        return endTime != 0 && !haveResult;
     }
 
     /** {@inheritDoc} */
@@ -367,11 +361,11 @@ public class GridFutureAdapter<R> extends AbstractQueuedSynchronizer implements 
         try {
             if (compareAndSetState(INIT, cancel ? CANCELLED : DONE)) {
                 if (err != null) {
-                    resFlag = ERR;
+                    haveResult = false;
                     this.res = err;
                 }
                 else {
-                    resFlag = RES;
+                    haveResult = true;
                     this.res = res;
                 }
 
