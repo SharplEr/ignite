@@ -30,7 +30,11 @@ import org.apache.ignite.resources.IgniteInstanceResource;
 public class GridP2PEventFilterExternalPath1 implements IgnitePredicate<Event> {
     /** Instance of grid. Used for save class loader and injected resource. */
     @IgniteInstanceResource
-    private Ignite ignite;
+    private final Ignite ignite;
+
+    public GridP2PEventFilterExternalPath1(Ignite ignite) {
+        this.ignite = ignite;
+    }
 
     /** {@inheritDoc} */
     @Override public boolean apply(Event evt) {

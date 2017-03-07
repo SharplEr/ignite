@@ -46,10 +46,10 @@ public class GridP2PMissedResourceCacheSizeSelfTest extends GridCommonAbstractTe
     private static final String TASK_NAME2 = "org.apache.ignite.tests.p2p.P2PTestTaskExternalPath2";
 
     /** Filter name. */
-    private static final String FILTER_NAME1 = "org.apache.ignite.tests.p2p.P2PEventFilterExternalPath1";
+    private static final String FILTER_NAME1 = "org.apache.ignite.tests.p2p.GridP2PEventFilterExternalPath1";
 
     /** Filter name. */
-    private static final String FILTER_NAME2 = "org.apache.ignite.tests.p2p.P2PEventFilterExternalPath2";
+    private static final String FILTER_NAME2 = "org.apache.ignite.tests.p2p.GridP2PEventFilterExternalPath2";
 
     /** Current deployment mode. Used in {@link #getConfiguration(String)}. */
     private DeploymentMode depMode;
@@ -167,63 +167,65 @@ public class GridP2PMissedResourceCacheSizeSelfTest extends GridCommonAbstractTe
      * @param depMode deployment mode.
      * @throws Exception If failed.
      */
-//    private void processSize2Test(GridDeploymentMode depMode) throws Exception {
-//        this.depMode = depMode;
-//
-//        missedResourceCacheSize = 2;
-//
-//        try {
-//            Grid g1 = startGrid(1);
-//            Grid g2 = startGrid(2);
-//
-//            String path = GridTestProperties.getProperty("p2p.uri.cls");
-//
-//            GridTestExternalClassLoader ldr = new GridTestExternalClassLoader(new URL[] {new URL(path)});
-//
-//            Class task1 = ldr.loadClass(TASK_NAME1);
-//            Class task2 = ldr.loadClass(TASK_NAME2);
-//            GridPredicate<GridEvent> filter1 = (GridPredicate<GridEvent>)ldr.loadClass(FILTER_NAME1).newInstance();
-//            GridPredicate<GridEvent> filter2 = (GridPredicate<GridEvent>)ldr.loadClass(FILTER_NAME2).newInstance();
-//
-//            g1.execute(GridP2PTestTask.class, 777).get(); // Create events.
-//
-//            g1.deployTask(task1);
-//            g1.deployTask(task2);
-//            g1.queryEvents(filter1, 0, F.<ClusterNode>localNode(g1)); // Deploy filter1.
-//            g1.queryEvents(filter2, 0, F.<ClusterNode>localNode(g2)); // Deploy filter2.
-//
-//            ldr.setExcludeClassNames(TASK_NAME1, TASK_NAME2, FILTER_NAME1, FILTER_NAME2);
-//
-//            executeFail(g1, filter1);
-//            executeFail(g1, g2, task1);
-//
-//            ldr.setExcludeClassNames();
-//
-//            executeFail(g1, filter1);
-//            executeFail(g1, g2, task1);
-//
-//            ldr.setExcludeClassNames(TASK_NAME1, TASK_NAME2, FILTER_NAME1, FILTER_NAME2);
-//
-//            executeFail(g1, filter2);
-//            executeFail(g1, g2, task2);
-//
-//            ldr.setExcludeClassNames();
-//
-//            executeFail(g1, filter2);
-//            executeFail(g1, g2, task2);
-//
-//            g1.queryEvents(filter1, 0, F.<ClusterNode>alwaysTrue());
-//
-//            g1.execute(task1, g2.localNode().id()).get();
-//        }
-//        finally {
-//            stopGrid(1);
-//            stopGrid(2);
-//        }
-//    }
+    private void processSize2Test(DeploymentMode depMode) throws Exception {
+        this.depMode = depMode;
+
+        missedRsrcCacheSize = 2;
+
+        try {
+            Ignite g1 = startGrid(1);
+            Ignite g2 = startGrid(2);
+
+            String path = GridTestProperties.getProperty("p2p.uri.cls");
+
+            GridTestExternalClassLoader ldr = new GridTestExternalClassLoader(new URL[] {new URL(path)});
+
+            Class task1 = ldr.loadClass(TASK_NAME1);
+            Class task2 = ldr.loadClass(TASK_NAME2);
+            IgnitePredicate<Event> filter1 = (IgnitePredicate<Event>)ldr.loadClass(FILTER_NAME1)
+                .getDeclaredConstructor(Ignite.class).newInstance(g1);
+            IgnitePredicate<Event> filter2 = (IgnitePredicate<Event>)ldr.loadClass(FILTER_NAME2)
+                .getDeclaredConstructor(Ignite.class).newInstance(g1);
+
+            g1.compute().execute(GridP2PTestTask.class, 777); // Create events.
+
+            g1.compute().localDeployTask(task1, task1.getClassLoader());
+            g1.compute().localDeployTask(task2, task2.getClassLoader());
+            g1.events().localQuery(filter1); // Deploy filter1.
+            g1.events().localQuery(filter2); // Deploy filter2.
+
+            ldr.setExcludeClassNames(TASK_NAME1, TASK_NAME2, FILTER_NAME1, FILTER_NAME2);
+
+            executeFail(g1.cluster(), filter1);
+            executeFail(g1, g2, task1);
+
+            ldr.setExcludeClassNames();
+
+            executeFail(g1.cluster(), filter1);
+            executeFail(g1, g2, task1);
+
+            ldr.setExcludeClassNames(TASK_NAME1, TASK_NAME2, FILTER_NAME1, FILTER_NAME2);
+
+            executeFail(g1.cluster(), filter2);
+            executeFail(g1, g2, task2);
+
+            ldr.setExcludeClassNames();
+
+            executeFail(g1.cluster(), filter2);
+            executeFail(g1, g2, task2);
+
+            g1.events().localQuery(filter1);
+
+            g1.compute().execute(task1, g2.cluster().localNode().id());
+        }
+        finally {
+            stopGrid(1);
+            stopGrid(2);
+        }
+    }
 
     /**
-     * Test GridDeploymentMode.PRIVATE mode.
+     * Test DeploymentMode.PRIVATE mode.
      *
      * @throws Exception if error occur.
      */
@@ -232,7 +234,7 @@ public class GridP2PMissedResourceCacheSizeSelfTest extends GridCommonAbstractTe
     }
 
     /**
-     * Test GridDeploymentMode.ISOLATED mode.
+     * Test DeploymentMode.ISOLATED mode.
      *
      * @throws Exception if error occur.
      */
@@ -241,7 +243,7 @@ public class GridP2PMissedResourceCacheSizeSelfTest extends GridCommonAbstractTe
     }
 
     /**
-     * Test GridDeploymentMode.CONTINUOUS mode.
+     * Test DeploymentMode.CONTINUOUS mode.
      *
      * @throws Exception if error occur.
      */
@@ -250,7 +252,7 @@ public class GridP2PMissedResourceCacheSizeSelfTest extends GridCommonAbstractTe
     }
 
     /**
-     * Test GridDeploymentMode.SHARED mode.
+     * Test DeploymentMode.SHARED mode.
      *
      * @throws Exception if error occur.
      */
@@ -258,38 +260,38 @@ public class GridP2PMissedResourceCacheSizeSelfTest extends GridCommonAbstractTe
         processSize0Test(DeploymentMode.SHARED);
     }
     /**
-     * Test GridDeploymentMode.PRIVATE mode.
+     * Test DeploymentMode.PRIVATE mode.
      *
      * @throws Exception if error occur.
      */
     public void testSize2PrivateMode() throws Exception {
-//        processSize2Test(GridDeploymentMode.PRIVATE);
+        processSize2Test(DeploymentMode.PRIVATE);
     }
 
     /**
-     * Test GridDeploymentMode.ISOLATED mode.
+     * Test DeploymentMode.ISOLATED mode.
      *
      * @throws Exception if error occur.
      */
     public void testSize2IsolatedMode() throws Exception {
-//        processSize2Test(GridDeploymentMode.ISOLATED);
+        processSize2Test(DeploymentMode.ISOLATED);
     }
 
     /**
-     * Test GridDeploymentMode.CONTINUOUS mode.
+     * Test DeploymentMode.CONTINUOUS mode.
      *
      * @throws Exception if error occur.
      */
     public void testSize2ContinuousMode() throws Exception {
-//        processSize2Test(GridDeploymentMode.CONTINUOUS);
+        processSize2Test(DeploymentMode.CONTINUOUS);
     }
 
     /**
-     * Test GridDeploymentMode.SHARED mode.
+     * Test DeploymentMode.SHARED mode.
      *
      * @throws Exception if error occur.
      */
     public void testSize2SharedMode() throws Exception {
-//        processSize2Test(GridDeploymentMode.SHARED);
+        processSize2Test(DeploymentMode.SHARED);
     }
 }
