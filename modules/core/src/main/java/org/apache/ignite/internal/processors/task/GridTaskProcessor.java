@@ -86,6 +86,7 @@ import static org.apache.ignite.internal.processors.task.GridTaskThreadContextKe
 import static org.apache.ignite.internal.processors.task.GridTaskThreadContextKey.TC_SUBJ_ID;
 import static org.apache.ignite.internal.processors.task.GridTaskThreadContextKey.TC_TASK_NAME;
 import static org.apache.ignite.internal.processors.task.GridTaskThreadContextKey.TC_TIMEOUT;
+import static org.apache.ignite.internal.processors.task.GridTaskThreadContextKey.EXECUTOR_NAME;
 
 /**
  * This class defines task processor.
@@ -663,8 +664,13 @@ public class GridTaskProcessor extends GridProcessorAdapter {
                             // Start task execution in another thread.
                             if (sys)
                                 ctx.getSystemExecutorService().execute(taskWorker);
-                            else
-                                ctx.getExecutorService().execute(taskWorker);
+                            else {
+                                Object executerName = map.get(EXECUTOR_NAME);
+                                if (executerName != null && executerName instanceof String)
+                                    ctx.getExecutorService((String)executerName).execute(taskWorker);
+                                else
+                                    ctx.getExecutorService().execute(taskWorker);
+                            }
                         }
                         catch (RejectedExecutionException e) {
                             tasks.remove(sesId);

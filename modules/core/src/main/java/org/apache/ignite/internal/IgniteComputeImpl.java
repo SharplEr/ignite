@@ -49,6 +49,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static org.apache.ignite.internal.GridClosureCallMode.BALANCE;
 import static org.apache.ignite.internal.GridClosureCallMode.BROADCAST;
+import static org.apache.ignite.internal.processors.task.GridTaskThreadContextKey.EXECUTOR_NAME;
 import static org.apache.ignite.internal.processors.task.GridTaskThreadContextKey.TC_NO_FAILOVER;
 import static org.apache.ignite.internal.processors.task.GridTaskThreadContextKey.TC_SUBGRID;
 import static org.apache.ignite.internal.processors.task.GridTaskThreadContextKey.TC_SUBJ_ID;
@@ -696,5 +697,20 @@ public class IgniteComputeImpl extends AsyncSupportAdapter<IgniteCompute>
     /** {@inheritDoc} */
     @Override public <R> ComputeTaskFuture<R> future() {
         return (ComputeTaskFuture<R>)super.future();
+    }
+
+    @Override public IgniteCompute withExecutor(String executorName) {
+        A.notNull(executorName, "executorName");
+
+        guard();
+
+        try {
+            ctx.task().setThreadContext(EXECUTOR_NAME, executorName);
+        }
+        finally {
+            unguard();
+        }
+
+        return this;
     }
 }

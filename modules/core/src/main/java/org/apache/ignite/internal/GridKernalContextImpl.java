@@ -30,6 +30,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.IgniteException;
@@ -94,6 +95,7 @@ import org.apache.ignite.internal.util.typedef.internal.U;
 import org.apache.ignite.plugin.PluginNotFoundException;
 import org.apache.ignite.plugin.PluginProvider;
 import org.apache.ignite.thread.IgniteStripedThreadPoolExecutor;
+import org.apache.ignite.thread.IgniteThreadPoolExecutor;
 import org.jetbrains.annotations.Nullable;
 
 import static org.apache.ignite.IgniteSystemProperties.IGNITE_DAEMON;
@@ -950,6 +952,25 @@ public class GridKernalContextImpl implements GridKernalContext, Externalizable 
     /** {@inheritDoc} */
     @Override public ExecutorService getExecutorService() {
         return execSvc;
+    }
+
+    ConcurrentHashMap<String, ExecutorService> jobExecutors = new ConcurrentHashMap<>();
+
+    @Override public ExecutorService getExecutorService(String executorName) {
+        if (executorName == null)
+            return getExecutorService();
+        //Try to avoid create new IgniteThreadPoolExecutor
+        ExecutorService exist = jobExecutors.get(executorName);
+        if (exist != null)
+            return exist;
+        //But we must to use putIfAbsent() anyway.
+        ExecutorService service = new IgniteThreadPoolExecutor();
+        exist = jobExecutors.putIfAbsent(executorName, service);
+        if (exist != null) {
+            service.shutdown();
+            return exist;
+        }
+        return service;
     }
 
     /** {@inheritDoc} */

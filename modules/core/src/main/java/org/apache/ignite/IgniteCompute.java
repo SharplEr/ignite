@@ -493,4 +493,6 @@ public interface IgniteCompute extends IgniteAsyncSupport {
 
     /** {@inheritDoc} */
     @Override public IgniteCompute withAsync();
+
+    IgniteCompute withExecutor(String executorName);
 }
