@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
 import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.IgniteCompute;
 import org.apache.ignite.IgniteDeploymentException;
@@ -699,6 +700,7 @@ public class IgniteComputeImpl extends AsyncSupportAdapter<IgniteCompute>
         return (ComputeTaskFuture<R>)super.future();
     }
 
+    /** {@inheritDoc} */
     @Override public IgniteCompute withExecutor(String executorName) {
         A.notNull(executorName, "executorName");
 
@@ -712,5 +714,10 @@ public class IgniteComputeImpl extends AsyncSupportAdapter<IgniteCompute>
         }
 
         return this;
+    }
+
+    /** {@inheritDoc} */
+    @Override public ExecutorService localExecutor(String executorName) {
+        return ctx.getExecutorService(executorName);
     }
 }

@@ -954,9 +954,9 @@ public class GridKernalContextImpl implements GridKernalContext, Externalizable 
         return execSvc;
     }
 
-    ConcurrentHashMap<String, ExecutorService> jobExecutors = new ConcurrentHashMap<>();
+    final ConcurrentHashMap<String, ExecutorService> jobExecutors = new ConcurrentHashMap<>();
 
-    @Override public ExecutorService getExecutorService(String executorName) {
+    @Override public ExecutorService getCreateExecutorService(String executorName) {
         if (executorName == null)
             return getExecutorService();
         //Try to avoid create new IgniteThreadPoolExecutor
@@ -971,6 +971,10 @@ public class GridKernalContextImpl implements GridKernalContext, Externalizable 
             return exist;
         }
         return service;
+    }
+
+    @Override public ExecutorService getExecutorService(String executorName) {
+        return jobExecutors.get(executorName);
     }
 
     /** {@inheritDoc} */

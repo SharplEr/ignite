@@ -505,6 +505,8 @@ public interface GridKernalContext extends Iterable<GridComponent> {
      */
     public ExecutorService getExecutorService();
 
+    public ExecutorService getCreateExecutorService(String executorName);
+
     public ExecutorService getExecutorService(String executorName);
 
     /**
