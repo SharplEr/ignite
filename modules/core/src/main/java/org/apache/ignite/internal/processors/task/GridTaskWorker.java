@@ -101,6 +101,7 @@ import static org.apache.ignite.internal.GridTopic.TOPIC_JOB;
 import static org.apache.ignite.internal.GridTopic.TOPIC_JOB_CANCEL;
 import static org.apache.ignite.internal.managers.communication.GridIoPolicy.MANAGEMENT_POOL;
 import static org.apache.ignite.internal.managers.communication.GridIoPolicy.PUBLIC_POOL;
+import static org.apache.ignite.internal.processors.task.GridTaskThreadContextKey.EXECUTOR_NAME;
 import static org.apache.ignite.internal.processors.task.GridTaskThreadContextKey.TC_NO_FAILOVER;
 
 /**
@@ -559,7 +560,7 @@ class GridTaskWorker<T, R> extends GridWorker implements GridTimeoutObject {
         // Catch throwable to protect against bad user code.
         catch (Throwable e) {
             String errMsg = "Failed to map task jobs to nodes due to undeclared user exception" +
-                " [cause=" + e.getMessage() + ", ses=" + ses + "]";
+                " [cause=" + e.getMessage() + ", ses=" + ses + ']';
 
             U.error(log, errMsg, e);
 
@@ -856,7 +857,7 @@ class GridTaskWorker<T, R> extends GridWorker implements GridTimeoutObject {
                     // then there is no point to proceed.
                     if (state != State.WAITING) {
                         if (log.isDebugEnabled())
-                            log.debug("Ignoring ComputeTask.result(..) value since task is already reducing or" +
+                            log.debug("Ignoring ComputeTask.result(..) value since task is already reducing or " +
                                 "finishing [res=" + res + ", job=" + ses + ", state=" + state + ']');
 
                         return;
@@ -1002,7 +1003,7 @@ class GridTaskWorker<T, R> extends GridWorker implements GridTimeoutObject {
                             sendRequest(jRes);
                         }
                         catch (Exception e) {
-                            U.error(log, "Failed to re-map job or retry request [ses=" + ses + "]", e);
+                            U.error(log, "Failed to re-map job or retry request [ses=" + ses + ']', e);
 
                             finishTask(null, e);
                         }
@@ -1081,7 +1082,7 @@ class GridTaskWorker<T, R> extends GridWorker implements GridTimeoutObject {
                     return null;
                 }
                 catch (Throwable e) {
-                    String errMsg = "Failed to obtain remote job result policy for result from" +
+                    String errMsg = "Failed to obtain remote job result policy for result from " +
                         "ComputeTask.result(..) method due to undeclared user exception " +
                         "(will fail the whole task): " + jobRes;
 
@@ -1376,7 +1377,8 @@ class GridTaskWorker<T, R> extends GridWorker implements GridTimeoutObject {
                         subjId,
                         affCacheIds,
                         affPartId,
-                        mapTopVer);
+                        mapTopVer,
+                        getThreadContext(EXECUTOR_NAME));
 
                     if (loc)
                         ctx.job().processJobExecuteRequest(ctx.discovery().localNode(), req);

@@ -347,7 +347,7 @@ public class GridJobProcessor extends GridProcessorAdapter {
      * @param job Rejected job.
      * @param sndReply {@code True} to send reply.
      */
-    private void rejectJob(GridJobWorker job, boolean sndReply) {
+    private static void rejectJob(GridJobWorker job, boolean sndReply) {
         IgniteException e = new ComputeExecutionRejectedException("Job was cancelled before execution [taskSesId=" +
             job.getSession().getId() + ", jobId=" + job.getJobId() + ", job=" + job.getJob() + ']');
 
@@ -1120,7 +1120,7 @@ public class GridJobProcessor extends GridProcessorAdapter {
                             if (onBeforeActivateJob(job)) {
                                 if (ctx.localNodeId().equals(node.id())) {
                                     // Always execute in another thread for local node.
-                                    executeAsync(job);
+                                    executeAsync(job, req.getExecutorName());
 
                                     // No sync execution.
                                     job = null;
@@ -1266,6 +1266,40 @@ public class GridJobProcessor extends GridProcessorAdapter {
         }
 
         return true;
+    }
+
+    /**
+     * Run in custom executor
+     *
+     * @param jobWorker Job worker.
+     * @return {@code True} if job has been submitted to pool.
+     */
+    private boolean executeAsync(GridJobWorker jobWorker, @Nullable String name) {
+        if (name==null) return executeAsync(jobWorker);
+        try {
+            ctx.getCreateExecutorService(name).execute(jobWorker);
+
+            if (metricsUpdateFreq > -1L)
+                startedJobsCnt.increment();
+
+            return true;
+        }
+        catch (RejectedExecutionException e) {
+            // Remove from active jobs.
+            activeJobs.remove(jobWorker.getJobId(), jobWorker);
+
+            // Even if job was removed from another thread, we need to reject it
+            // here since job has never been executed.
+            IgniteException e2 = new ComputeExecutionRejectedException("Job has been rejected " +
+                "[jobSes=" + jobWorker.getSession() + ", job=" + jobWorker.getJob() + ']', e);
+
+            if (metricsUpdateFreq > -1L)
+                rejectedJobsCnt.increment();
+
+            jobWorker.finishJob(null, e2, true);
+        }
+
+        return false;
     }
 
     /**
@@ -1503,14 +1537,14 @@ public class GridJobProcessor extends GridProcessorAdapter {
         private final AffinityTopologyVersion topVer;
 
         /** Partitions. */
-        private GridDhtLocalPartition[] partititons;
+        private final GridDhtLocalPartition[] partititons;
 
         /**
          * @param cacheIds Cache identifiers array.
          * @param partId Partition number.
          * @param topVer Affinity topology version.
          */
-        public PartitionsReservation(int[] cacheIds, int partId,
+        private PartitionsReservation(int[] cacheIds, int partId,
             AffinityTopologyVersion topVer) {
             this.cacheIds = cacheIds;
             this.partId = partId;
@@ -2016,7 +2050,7 @@ public class GridJobProcessor extends GridProcessorAdapter {
         }
 
         /** {@inheritDoc} */
-        @Override public GridJobWorker putIfAbsent(IgniteUuid key, GridJobWorker val) {
+        @Override public GridJobWorker putIfAbsent(@NotNull IgniteUuid key, GridJobWorker val) {
             assert !val.isInternal();
 
             GridJobWorker old = super.putIfAbsent(key, val);

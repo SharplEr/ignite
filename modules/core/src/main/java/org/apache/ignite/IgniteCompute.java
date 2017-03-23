@@ -19,6 +19,7 @@ package org.apache.ignite;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import org.apache.ignite.cluster.ClusterGroup;
 import org.apache.ignite.compute.ComputeTask;
 import org.apache.ignite.compute.ComputeTaskFuture;
@@ -493,4 +494,20 @@ public interface IgniteCompute extends IgniteAsyncSupport {
 
     /** {@inheritDoc} */
     @Override public IgniteCompute withAsync();
+
+    /**
+     * Add named executor.
+     *
+     * @param executorName Executor name.
+     * @return Instance of IgniteCompute with new named executor.
+     */
+    @NotNull IgniteCompute withExecutor(@Nullable String executorName);
+
+    /**
+     * Return named executor.
+     *
+     * @param executorName Executor name.
+     * @return Local instance of named executor.
+     */
+    @Nullable ExecutorService localExecutor(@Nullable String executorName);
 }

@@ -135,7 +135,7 @@ public class GridIoManager extends GridManagerAdapter<CommunicationSpi<Serializa
     private final Collection<GridDisconnectListener> disconnectLsnrs = new ConcurrentLinkedQueue<>();
 
     /** Pool processor. */
-    private PoolProcessor pools;
+    private final PoolProcessor pools;
 
     /** Discovery listener. */
     private GridLocalEventListener discoLsnr;
@@ -337,7 +337,7 @@ public class GridIoManager extends GridManagerAdapter<CommunicationSpi<Serializa
                         send(node, GridTopic.TOPIC_IO_TEST, res, GridIoPolicy.SYSTEM_POOL);
                     }
                     catch (IgniteCheckedException e) {
-                        U.error(log, "Failed to send IO test response [msg=" + msg0 + "]", e);
+                        U.error(log, "Failed to send IO test response [msg=" + msg0 + ']', e);
                     }
                 }
                 else {
@@ -627,7 +627,6 @@ public class GridIoManager extends GridManagerAdapter<CommunicationSpi<Serializa
      * @param msg Message bytes.
      * @param msgC Closure to call when message processing finished.
      */
-    @SuppressWarnings("fallthrough")
     private void onMessage0(UUID nodeId, GridIoMessage msg, IgniteRunnable msgC) {
         assert nodeId != null;
         assert msg != null;
@@ -999,7 +998,7 @@ public class GridIoManager extends GridManagerAdapter<CommunicationSpi<Serializa
      * @param topic Topic.
      * @return Index.
      */
-    private int systemListenerIndex(Object topic) {
+    private static int systemListenerIndex(Object topic) {
         assert topic instanceof GridTopic;
 
         return ((GridTopic)topic).ordinal();
@@ -1215,7 +1214,7 @@ public class GridIoManager extends GridManagerAdapter<CommunicationSpi<Serializa
      * @param nodeId Node ID.
      * @param msg Message.
      */
-    private void invokeListener(Byte plc, GridMessageListener lsnr, UUID nodeId, Object msg) {
+    private static void invokeListener(Byte plc, GridMessageListener lsnr, UUID nodeId, Object msg) {
         Byte oldPlc = CUR_PLC.get();
 
         boolean change = F.eq(oldPlc, plc);
@@ -2291,7 +2290,7 @@ public class GridIoManager extends GridManagerAdapter<CommunicationSpi<Serializa
         private final boolean skipOnTimeout;
 
         /** */
-        private long lastTs;
+        private final long lastTs;
 
         /**
          * @param plc Communication policy.

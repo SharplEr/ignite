@@ -30,7 +30,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
 import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.IgniteException;
 import org.apache.ignite.IgniteLogger;
@@ -94,9 +96,12 @@ import org.apache.ignite.internal.util.typedef.internal.U;
 import org.apache.ignite.plugin.PluginNotFoundException;
 import org.apache.ignite.plugin.PluginProvider;
 import org.apache.ignite.thread.IgniteStripedThreadPoolExecutor;
+import org.apache.ignite.thread.IgniteThreadPoolExecutor;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.apache.ignite.IgniteSystemProperties.IGNITE_DAEMON;
+import static org.apache.ignite.configuration.IgniteConfiguration.DFLT_THREAD_KEEP_ALIVE_TIME;
 import static org.apache.ignite.internal.IgniteComponentType.SPRING;
 
 /**
@@ -290,7 +295,7 @@ public class GridKernalContextImpl implements GridKernalContext, Externalizable 
 
     /** */
     @GridToStringExclude
-    private List<GridComponent> comps = new LinkedList<>();
+    private final List<GridComponent> comps = new LinkedList<>();
 
     /** */
     @GridToStringExclude
@@ -334,7 +339,7 @@ public class GridKernalContextImpl implements GridKernalContext, Externalizable 
 
     /** */
     @GridToStringExclude
-    private Map<String, Object> attrs = new HashMap<>();
+    private final Map<String, Object> attrs = new HashMap<>();
 
     /** */
     private IgniteEx grid;
@@ -950,6 +955,38 @@ public class GridKernalContextImpl implements GridKernalContext, Externalizable 
     /** {@inheritDoc} */
     @Override public ExecutorService getExecutorService() {
         return execSvc;
+    }
+
+    private final ConcurrentHashMap<String, ExecutorService> jobExecutors = new ConcurrentHashMap<>();
+
+    /** {@inheritDoc} */
+    @NotNull @Override public ExecutorService getCreateExecutorService(@Nullable final String executorName) {
+        if (executorName == null)
+            return execSvc;
+        //Try to avoid create new IgniteThreadPoolExecutor
+        ExecutorService exist = jobExecutors.get(executorName);
+        if (exist != null)
+            return exist;
+        //But we must to use putIfAbsent() anyway.
+
+        final ExecutorService service = new IgniteThreadPoolExecutor(
+            "pub_"+executorName,
+            cfg.getGridName(),
+            cfg.getPublicThreadPoolSize(),
+            cfg.getPublicThreadPoolSize(),
+            DFLT_THREAD_KEEP_ALIVE_TIME,
+            new LinkedBlockingQueue<Runnable>());
+        exist = jobExecutors.putIfAbsent(executorName, service);
+        if (exist != null) {
+            service.shutdown();
+            return exist;
+        }
+        return service;
+    }
+
+    /** {@inheritDoc} */
+    @Nullable @Override public ExecutorService getExecutorService(@Nullable final String executorName) {
+        return jobExecutors.get(executorName);
     }
 
     /** {@inheritDoc} */

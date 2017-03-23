@@ -72,6 +72,7 @@ import org.apache.ignite.internal.util.tostring.GridToStringExclude;
 import org.apache.ignite.plugin.PluginNotFoundException;
 import org.apache.ignite.plugin.PluginProvider;
 import org.apache.ignite.thread.IgniteStripedThreadPoolExecutor;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -504,6 +505,22 @@ public interface GridKernalContext extends Iterable<GridComponent> {
      *      requests and user messages sent to the node.
      */
     public ExecutorService getExecutorService();
+
+    /**
+     * Return named executor service and create if necessary.
+     *
+     * @param executorName Executor name.
+     * @return Named executor service.
+     */
+    public @NotNull ExecutorService getCreateExecutorService(@Nullable String executorName);
+
+    /**
+     * Return named executor service or null, if service still doesn't exist.
+     *
+     * @param executorName Executor name.
+     * @return Named executor service or null, if service still doesn't exist.
+     */
+    public @Nullable ExecutorService getExecutorService(@Nullable String executorName);
 
     /**
      * Executor service that is in charge of processing internal system messages.

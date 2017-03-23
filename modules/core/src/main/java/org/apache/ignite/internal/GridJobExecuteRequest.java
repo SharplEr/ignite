@@ -44,6 +44,7 @@ import org.jetbrains.annotations.Nullable;
 public class GridJobExecuteRequest implements Message {
     /** */
     private static final long serialVersionUID = 0L;
+    private String executorName;
 
     /** Subject ID. */
     private UUID subjId;
@@ -113,7 +114,7 @@ public class GridJobExecuteRequest implements Message {
 
     /** Transient since needs to hold local creation time. */
     @GridDirectTransient
-    private long createTime = U.currentTimeMillis();
+    private final long createTime = U.currentTimeMillis();
 
     /** */
     private IgniteUuid clsLdrId;
@@ -211,7 +212,8 @@ public class GridJobExecuteRequest implements Message {
             UUID subjId,
             @Nullable int[] cacheIds,
             int part,
-            @Nullable AffinityTopologyVersion topVer) {
+            @Nullable AffinityTopologyVersion topVer,
+            @Nullable String executorName) {
         this.top = top;
         assert sesId != null;
         assert jobId != null;
@@ -253,8 +255,10 @@ public class GridJobExecuteRequest implements Message {
         this.topVer = topVer;
 
         this.cpSpi = cpSpi == null || cpSpi.isEmpty() ? null : cpSpi;
+
+        this.executorName = executorName;
     }
-    
+
     /**
      * @return Task session ID.
      */
@@ -388,6 +392,10 @@ public class GridJobExecuteRequest implements Message {
      */
     public DeploymentMode getDeploymentMode() {
         return depMode;
+    }
+
+    @Nullable public String getExecutorName() {
+        return executorName;
     }
 
     /**
@@ -621,7 +629,11 @@ public class GridJobExecuteRequest implements Message {
                     return false;
 
                 writer.incrementState();
+            case 24:
+                if (!writer.writeString("executorName", executorName))
+                    return false;
 
+                writer.incrementState();
         }
 
         return true;
@@ -830,7 +842,13 @@ public class GridJobExecuteRequest implements Message {
                     return false;
 
                 reader.incrementState();
+            case 24:
+                executorName = reader.readString("executorName");
 
+                if (!reader.isLastRead())
+                    return false;
+
+                reader.incrementState();
         }
 
         return reader.afterMessageRead(GridJobExecuteRequest.class);
