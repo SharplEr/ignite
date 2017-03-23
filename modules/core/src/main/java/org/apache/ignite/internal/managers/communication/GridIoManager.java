@@ -138,10 +138,7 @@ public class GridIoManager extends GridManagerAdapter<CommunicationSpi<Serializa
     private final Collection<GridDisconnectListener> disconnectLsnrs = new ConcurrentLinkedQueue<>();
 
     /** Pool processor. */
-    private PoolProcessor pools;
-
-    /** Map from name to executor. */
-    private final ConcurrentHashMap<String, ExecutorService> jobExecutors = new ConcurrentHashMap<>();
+    private final PoolProcessor pools;
 
     /** Discovery listener. */
     private GridLocalEventListener discoLsnr;
