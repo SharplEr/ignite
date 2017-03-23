@@ -1120,7 +1120,7 @@ public class GridJobProcessor extends GridProcessorAdapter {
                             if (onBeforeActivateJob(job)) {
                                 if (ctx.localNodeId().equals(node.id())) {
                                     // Always execute in another thread for local node.
-                                    executeAsync(job);
+                                    executeAsync(job, req.getExecutorName());
 
                                     // No sync execution.
                                     job = null;
@@ -1266,6 +1266,40 @@ public class GridJobProcessor extends GridProcessorAdapter {
         }
 
         return true;
+    }
+
+    /**
+     * Run in custom executor
+     *
+     * @param jobWorker Job worker.
+     * @return {@code True} if job has been submitted to pool.
+     */
+    private boolean executeAsync(GridJobWorker jobWorker, String name) {
+        if (name==null) return executeAsync(jobWorker);
+        try {
+            ctx.getCreateExecutorService(name).execute(jobWorker);
+
+            if (metricsUpdateFreq > -1L)
+                startedJobsCnt.increment();
+
+            return true;
+        }
+        catch (RejectedExecutionException e) {
+            // Remove from active jobs.
+            activeJobs.remove(jobWorker.getJobId(), jobWorker);
+
+            // Even if job was removed from another thread, we need to reject it
+            // here since job has never been executed.
+            IgniteException e2 = new ComputeExecutionRejectedException("Job has been rejected " +
+                "[jobSes=" + jobWorker.getSession() + ", job=" + jobWorker.getJob() + ']', e);
+
+            if (metricsUpdateFreq > -1L)
+                rejectedJobsCnt.increment();
+
+            jobWorker.finishJob(null, e2, true);
+        }
+
+        return false;
     }
 
     /**
