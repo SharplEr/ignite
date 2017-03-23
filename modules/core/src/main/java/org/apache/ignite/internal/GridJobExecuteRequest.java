@@ -394,7 +394,7 @@ public class GridJobExecuteRequest implements Message {
         return depMode;
     }
 
-    public String getExecutorName() {
+    public @Nullable String getExecutorName() {
         return executorName;
     }
 
