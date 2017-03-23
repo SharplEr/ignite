@@ -96,6 +96,7 @@ import org.apache.ignite.plugin.PluginNotFoundException;
 import org.apache.ignite.plugin.PluginProvider;
 import org.apache.ignite.thread.IgniteStripedThreadPoolExecutor;
 import org.apache.ignite.thread.IgniteThreadPoolExecutor;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.apache.ignite.IgniteSystemProperties.IGNITE_DAEMON;
@@ -957,7 +958,7 @@ public class GridKernalContextImpl implements GridKernalContext, Externalizable 
     final ConcurrentHashMap<String, ExecutorService> jobExecutors = new ConcurrentHashMap<>();
 
     /** {@inheritDoc} */
-    @Override public ExecutorService getCreateExecutorService(final String executorName) {
+    @NotNull @Override public ExecutorService getCreateExecutorService(@Nullable final String executorName) {
         if (executorName == null)
             return getExecutorService();
         //Try to avoid create new IgniteThreadPoolExecutor
@@ -975,7 +976,7 @@ public class GridKernalContextImpl implements GridKernalContext, Externalizable 
     }
 
     /** {@inheritDoc} */
-    @Override public ExecutorService getExecutorService(final String executorName) {
+    @Nullable @Override public ExecutorService getExecutorService(@Nullable final String executorName) {
         return jobExecutors.get(executorName);
     }
 

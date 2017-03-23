@@ -1274,7 +1274,7 @@ public class GridJobProcessor extends GridProcessorAdapter {
      * @param jobWorker Job worker.
      * @return {@code True} if job has been submitted to pool.
      */
-    private boolean executeAsync(GridJobWorker jobWorker, String name) {
+    private boolean executeAsync(GridJobWorker jobWorker, @Nullable String name) {
         if (name==null) return executeAsync(jobWorker);
         try {
             ctx.getCreateExecutorService(name).execute(jobWorker);

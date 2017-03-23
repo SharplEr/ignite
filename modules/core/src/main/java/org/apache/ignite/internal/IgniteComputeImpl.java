@@ -701,7 +701,7 @@ public class IgniteComputeImpl extends AsyncSupportAdapter<IgniteCompute>
     }
 
     /** {@inheritDoc} */
-    @Override public IgniteCompute withExecutor(String executorName) {
+    @NotNull @Override public IgniteCompute withExecutor(@Nullable String executorName) {
         A.notNull(executorName, "executorName");
 
         guard();
@@ -717,7 +717,7 @@ public class IgniteComputeImpl extends AsyncSupportAdapter<IgniteCompute>
     }
 
     /** {@inheritDoc} */
-    @Override public ExecutorService localExecutor(String executorName) {
+    @Nullable @Override public ExecutorService localExecutor(@Nullable String executorName) {
         return ctx.getExecutorService(executorName);
     }
 }

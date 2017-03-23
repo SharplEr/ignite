@@ -501,7 +501,7 @@ public interface IgniteCompute extends IgniteAsyncSupport {
      * @param executorName Executor name.
      * @return Instance of IgniteCompute with new named executor.
      */
-    IgniteCompute withExecutor(String executorName);
+    @NotNull IgniteCompute withExecutor(@Nullable String executorName);
 
     /**
      * Return named executor.
@@ -509,5 +509,5 @@ public interface IgniteCompute extends IgniteAsyncSupport {
      * @param executorName Executor name.
      * @return Local instance of named executor.
      */
-    ExecutorService localExecutor(String executorName);
+    @Nullable ExecutorService localExecutor(@Nullable String executorName);
 }

@@ -1,6 +1,7 @@
 package org.apache.ignite.internal;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -18,6 +19,7 @@ import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.internal.util.future.IgniteFinishedFutureImpl;
 import org.apache.ignite.lang.IgniteFuture;
 import org.apache.ignite.testframework.junits.common.GridCommonAbstractTest;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -74,8 +76,9 @@ public class GridJobWithSubTasksTest extends GridCommonAbstractTest {
         }
 
         /** {@inheritDoc} */
-        @Nullable @Override public final Map<? extends ComputeJob, ClusterNode> map(final List<ClusterNode> subgrid,
+        @NotNull @Override public final Map<? extends ComputeJob, ClusterNode> map(final List<ClusterNode> subgrid,
             @Nullable final String arg) {
+            if (arg==null) return Collections.<ComputeJob, ClusterNode>emptyMap();
             Iterator<ClusterNode> it = subgrid.iterator();
             final String[] splited = arg.split(String.valueOf(arg.charAt(0)));
             final Map<ComputeJob, ClusterNode> map = new HashMap<>(splited.length);
@@ -88,7 +91,8 @@ public class GridJobWithSubTasksTest extends GridCommonAbstractTest {
                 final ClusterNode node = it.next();
 
                 map.put(new ComputeJobAdapter() {
-                    @Nullable @Override public IgniteFuture<Integer> execute() {
+                    /** {@inheritDoc} */
+                    @NotNull @Override public IgniteFuture<Integer> execute() {
                         final IgniteCompute compute = ignite.compute().withAsync().withExecutor(name);
                         final Integer ans = compute.execute(TestSubComputeTask.class, word);
                         if (ans != null)
@@ -109,11 +113,11 @@ public class GridJobWithSubTasksTest extends GridCommonAbstractTest {
         }
 
         /** {@inheritDoc} */
-        @Nullable @Override public final Integer reduce(final List<ComputeJobResult> results) {
+        @NotNull @Override public final Integer reduce(final List<ComputeJobResult> results) {
             int sum = 1;
 
             for (final ComputeJobResult res : results)
-                if (res != null && res.<IgniteFuture<Integer>>getData() != null)
+                if ((res != null) && (res.<IgniteFuture<Integer>>getData() != null))
                     sum += (res.<IgniteFuture<Integer>>getData().get() + 1);
 
             return sum;
@@ -126,8 +130,9 @@ public class GridJobWithSubTasksTest extends GridCommonAbstractTest {
     @ComputeTaskMapAsync
     public static class TestSubComputeTask extends ComputeTaskAdapter<String, Integer> {
         /** {@inheritDoc} */
-        @Nullable @Override public final Map<? extends ComputeJob, ClusterNode> map(final List<ClusterNode> subgrid,
+        @NotNull @Override public final Map<? extends ComputeJob, ClusterNode> map(final List<ClusterNode> subgrid,
             @Nullable final String arg) {
+            if (arg==null) return Collections.<ComputeJob, ClusterNode>emptyMap();
             Iterator<ClusterNode> it = subgrid.iterator();
             final String[] splited = arg.split(" ");
             final Map<ComputeJob, ClusterNode> map = new HashMap<>(splited.length);
@@ -146,7 +151,7 @@ public class GridJobWithSubTasksTest extends GridCommonAbstractTest {
         }
 
         /** {@inheritDoc} */
-        @Nullable @Override public final Integer reduce(final List<ComputeJobResult> results) {
+        @NotNull @Override public final Integer reduce(final List<ComputeJobResult> results) {
             int sum = 1;
 
             for (final ComputeJobResult res : results)
@@ -158,7 +163,7 @@ public class GridJobWithSubTasksTest extends GridCommonAbstractTest {
 
     private static class MyComputeJobAdapter extends ComputeJobAdapter {
         /** {@inheritDoc} */
-        @Nullable @Override public Integer execute() {
+        @NotNull @Override public Integer execute() {
             return 1;
         }
     }
