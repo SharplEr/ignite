@@ -196,7 +196,7 @@ public class GridTaskProcessor extends GridProcessorAdapter {
 
         if (size > 0) {
             if (cancel)
-                U.warn(log, "Will cancel unfinished tasks due to stopping of the grid [cnt=" + size + "]");
+                U.warn(log, "Will cancel unfinished tasks due to stopping of the grid [cnt=" + size + ']');
             else
                 U.warn(log, "Will wait for all job responses from worker nodes before stopping grid.");
 
@@ -735,7 +735,7 @@ public class GridTaskProcessor extends GridProcessorAdapter {
      * @return Task name.
      * @throws IgniteCheckedException If {@link @ComputeTaskName} annotation is found, but has empty value.
      */
-    private String taskName(GridDeployment dep, Class<?> cls,
+    private static String taskName(GridDeployment dep, Class<?> cls,
         Map<GridTaskThreadContextKey, Object> map) throws IgniteCheckedException {
         assert dep != null;
         assert cls != null;
@@ -808,7 +808,7 @@ public class GridTaskProcessor extends GridProcessorAdapter {
      * @param fut Task future.
      * @param <R> Result type.
      */
-    private <R> void handleException(Throwable ex, ComputeTaskInternalFuture<R> fut) {
+    private static <R> void handleException(Throwable ex, ComputeTaskInternalFuture<R> fut) {
         assert ex != null;
         assert fut != null;
 

@@ -114,7 +114,7 @@ public class GridJobExecuteRequest implements Message {
 
     /** Transient since needs to hold local creation time. */
     @GridDirectTransient
-    private long createTime = U.currentTimeMillis();
+    private final long createTime = U.currentTimeMillis();
 
     /** */
     private IgniteUuid clsLdrId;
@@ -394,7 +394,7 @@ public class GridJobExecuteRequest implements Message {
         return depMode;
     }
 
-    public @Nullable String getExecutorName() {
+    @Nullable public String getExecutorName() {
         return executorName;
     }
 

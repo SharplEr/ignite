@@ -30,7 +30,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -44,7 +43,6 @@ import org.apache.ignite.IgniteException;
 import org.apache.ignite.cluster.ClusterNode;
 import org.apache.ignite.events.DiscoveryEvent;
 import org.apache.ignite.events.Event;
-import org.apache.ignite.internal.GridJobExecuteRequest;
 import org.apache.ignite.internal.GridKernalContext;
 import org.apache.ignite.internal.GridTopic;
 import org.apache.ignite.internal.IgniteComponentType;
@@ -83,7 +81,6 @@ import org.apache.ignite.spi.IgniteSpiException;
 import org.apache.ignite.spi.communication.CommunicationListener;
 import org.apache.ignite.spi.communication.CommunicationSpi;
 import org.apache.ignite.spi.communication.tcp.TcpCommunicationSpi;
-import org.apache.ignite.thread.IgniteThreadPoolExecutor;
 import org.jetbrains.annotations.Nullable;
 import org.jsr166.ConcurrentHashMap8;
 import org.jsr166.ConcurrentLinkedDeque8;
@@ -340,7 +337,7 @@ public class GridIoManager extends GridManagerAdapter<CommunicationSpi<Serializa
                         send(node, GridTopic.TOPIC_IO_TEST, res, GridIoPolicy.SYSTEM_POOL);
                     }
                     catch (IgniteCheckedException e) {
-                        U.error(log, "Failed to send IO test response [msg=" + msg0 + "]", e);
+                        U.error(log, "Failed to send IO test response [msg=" + msg0 + ']', e);
                     }
                 }
                 else {
@@ -1001,7 +998,7 @@ public class GridIoManager extends GridManagerAdapter<CommunicationSpi<Serializa
      * @param topic Topic.
      * @return Index.
      */
-    private int systemListenerIndex(Object topic) {
+    private static int systemListenerIndex(Object topic) {
         assert topic instanceof GridTopic;
 
         return ((GridTopic)topic).ordinal();
@@ -1217,7 +1214,7 @@ public class GridIoManager extends GridManagerAdapter<CommunicationSpi<Serializa
      * @param nodeId Node ID.
      * @param msg Message.
      */
-    private void invokeListener(Byte plc, GridMessageListener lsnr, UUID nodeId, Object msg) {
+    private static void invokeListener(Byte plc, GridMessageListener lsnr, UUID nodeId, Object msg) {
         Byte oldPlc = CUR_PLC.get();
 
         boolean change = F.eq(oldPlc, plc);
@@ -2293,7 +2290,7 @@ public class GridIoManager extends GridManagerAdapter<CommunicationSpi<Serializa
         private final boolean skipOnTimeout;
 
         /** */
-        private long lastTs;
+        private final long lastTs;
 
         /**
          * @param plc Communication policy.

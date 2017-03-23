@@ -36,6 +36,6 @@ public enum GridTaskThreadContextKey {
     /** Security subject ID. */
     TC_SUBJ_ID,
 
-    /** Name of executor*/
+    /** Name of executor. */
     EXECUTOR_NAME
 }

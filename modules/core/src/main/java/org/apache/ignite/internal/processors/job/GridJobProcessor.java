@@ -347,7 +347,7 @@ public class GridJobProcessor extends GridProcessorAdapter {
      * @param job Rejected job.
      * @param sndReply {@code True} to send reply.
      */
-    private void rejectJob(GridJobWorker job, boolean sndReply) {
+    private static void rejectJob(GridJobWorker job, boolean sndReply) {
         IgniteException e = new ComputeExecutionRejectedException("Job was cancelled before execution [taskSesId=" +
             job.getSession().getId() + ", jobId=" + job.getJobId() + ", job=" + job.getJob() + ']');
 
@@ -1537,14 +1537,14 @@ public class GridJobProcessor extends GridProcessorAdapter {
         private final AffinityTopologyVersion topVer;
 
         /** Partitions. */
-        private GridDhtLocalPartition[] partititons;
+        private final GridDhtLocalPartition[] partititons;
 
         /**
          * @param cacheIds Cache identifiers array.
          * @param partId Partition number.
          * @param topVer Affinity topology version.
          */
-        public PartitionsReservation(int[] cacheIds, int partId,
+        private PartitionsReservation(int[] cacheIds, int partId,
             AffinityTopologyVersion topVer) {
             this.cacheIds = cacheIds;
             this.partId = partId;
@@ -2050,7 +2050,7 @@ public class GridJobProcessor extends GridProcessorAdapter {
         }
 
         /** {@inheritDoc} */
-        @Override public GridJobWorker putIfAbsent(IgniteUuid key, GridJobWorker val) {
+        @Override public GridJobWorker putIfAbsent(@NotNull IgniteUuid key, GridJobWorker val) {
             assert !val.isInternal();
 
             GridJobWorker old = super.putIfAbsent(key, val);

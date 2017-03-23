@@ -962,7 +962,7 @@ public class GridKernalContextImpl implements GridKernalContext, Externalizable 
     /** {@inheritDoc} */
     @NotNull @Override public ExecutorService getCreateExecutorService(@Nullable final String executorName) {
         if (executorName == null)
-            return getExecutorService();
+            return execSvc;
         //Try to avoid create new IgniteThreadPoolExecutor
         ExecutorService exist = jobExecutors.get(executorName);
         if (exist != null)
