@@ -140,6 +140,7 @@ public class GridIoManager extends GridManagerAdapter<CommunicationSpi<Serializa
     /** Pool processor. */
     private PoolProcessor pools;
 
+    /** Map from name to executor. */
     private final ConcurrentHashMap<String, ExecutorService> jobExecutors = new ConcurrentHashMap<>();
 
     /** Discovery listener. */
@@ -831,13 +832,13 @@ public class GridIoManager extends GridManagerAdapter<CommunicationSpi<Serializa
 
         try {
             if (msg.message() instanceof GridJobExecuteRequest) {
-                String executorName = ((GridJobExecuteRequest)msg.message()).getExecutorName();
+                final String executorName = ((GridJobExecuteRequest)msg.message()).getExecutorName();
                 if (executorName == null)
                     pools.poolForPolicy(plc).execute(c);
                 else {
                     ExecutorService service = jobExecutors.get(executorName);
                     if (service == null) {
-                        ExecutorService tempExecutor = new IgniteThreadPoolExecutor();
+                        final ExecutorService tempExecutor = new IgniteThreadPoolExecutor();
                         service = jobExecutors.putIfAbsent(executorName, tempExecutor);
                         if (service == null)
                             service = tempExecutor;

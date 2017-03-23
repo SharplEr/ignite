@@ -292,7 +292,7 @@ public class GridKernalContextImpl implements GridKernalContext, Externalizable 
 
     /** */
     @GridToStringExclude
-    private List<GridComponent> comps = new LinkedList<>();
+    private final List<GridComponent> comps = new LinkedList<>();
 
     /** */
     @GridToStringExclude
@@ -336,7 +336,7 @@ public class GridKernalContextImpl implements GridKernalContext, Externalizable 
 
     /** */
     @GridToStringExclude
-    private Map<String, Object> attrs = new HashMap<>();
+    private final Map<String, Object> attrs = new HashMap<>();
 
     /** */
     private IgniteEx grid;
@@ -956,7 +956,8 @@ public class GridKernalContextImpl implements GridKernalContext, Externalizable 
 
     final ConcurrentHashMap<String, ExecutorService> jobExecutors = new ConcurrentHashMap<>();
 
-    @Override public ExecutorService getCreateExecutorService(String executorName) {
+    /** {@inheritDoc} */
+    @Override public ExecutorService getCreateExecutorService(final String executorName) {
         if (executorName == null)
             return getExecutorService();
         //Try to avoid create new IgniteThreadPoolExecutor
@@ -964,7 +965,7 @@ public class GridKernalContextImpl implements GridKernalContext, Externalizable 
         if (exist != null)
             return exist;
         //But we must to use putIfAbsent() anyway.
-        ExecutorService service = new IgniteThreadPoolExecutor();
+        final ExecutorService service = new IgniteThreadPoolExecutor();
         exist = jobExecutors.putIfAbsent(executorName, service);
         if (exist != null) {
             service.shutdown();
@@ -973,7 +974,8 @@ public class GridKernalContextImpl implements GridKernalContext, Externalizable 
         return service;
     }
 
-    @Override public ExecutorService getExecutorService(String executorName) {
+    /** {@inheritDoc} */
+    @Override public ExecutorService getExecutorService(final String executorName) {
         return jobExecutors.get(executorName);
     }
 

@@ -495,6 +495,19 @@ public interface IgniteCompute extends IgniteAsyncSupport {
     /** {@inheritDoc} */
     @Override public IgniteCompute withAsync();
 
+    /**
+     * Add named executor.
+     *
+     * @param executorName Executor name.
+     * @return Instance of IgniteCompute with new named executor.
+     */
     IgniteCompute withExecutor(String executorName);
+
+    /**
+     * Return named executor.
+     *
+     * @param executorName Executor name.
+     * @return Local instance of named executor.
+     */
     ExecutorService localExecutor(String executorName);
 }
