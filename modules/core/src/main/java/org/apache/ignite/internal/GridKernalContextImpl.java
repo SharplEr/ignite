@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
 import org.apache.ignite.IgniteCheckedException;
 import org.apache.ignite.IgniteException;
 import org.apache.ignite.IgniteLogger;
@@ -100,6 +101,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import static org.apache.ignite.IgniteSystemProperties.IGNITE_DAEMON;
+import static org.apache.ignite.configuration.IgniteConfiguration.DFLT_THREAD_KEEP_ALIVE_TIME;
 import static org.apache.ignite.internal.IgniteComponentType.SPRING;
 
 /**
@@ -966,7 +968,14 @@ public class GridKernalContextImpl implements GridKernalContext, Externalizable 
         if (exist != null)
             return exist;
         //But we must to use putIfAbsent() anyway.
-        final ExecutorService service = new IgniteThreadPoolExecutor();
+
+        final ExecutorService service = new IgniteThreadPoolExecutor(
+            "pub_"+executorName,
+            cfg.getGridName(),
+            cfg.getPublicThreadPoolSize(),
+            cfg.getPublicThreadPoolSize(),
+            DFLT_THREAD_KEEP_ALIVE_TIME,
+            new LinkedBlockingQueue<Runnable>());
         exist = jobExecutors.putIfAbsent(executorName, service);
         if (exist != null) {
             service.shutdown();
