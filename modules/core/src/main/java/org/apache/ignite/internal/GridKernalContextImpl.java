@@ -957,7 +957,7 @@ public class GridKernalContextImpl implements GridKernalContext, Externalizable 
         return execSvc;
     }
 
-    final ConcurrentHashMap<String, ExecutorService> jobExecutors = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, ExecutorService> jobExecutors = new ConcurrentHashMap<>();
 
     /** {@inheritDoc} */
     @NotNull @Override public ExecutorService getCreateExecutorService(@Nullable final String executorName) {
