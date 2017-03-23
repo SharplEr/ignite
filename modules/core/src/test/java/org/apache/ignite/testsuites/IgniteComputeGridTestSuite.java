@@ -43,6 +43,7 @@ import org.apache.ignite.internal.GridJobMasterLeaveAwareSelfTest;
 import org.apache.ignite.internal.GridJobStealingSelfTest;
 import org.apache.ignite.internal.GridJobStealingZeroActiveJobsSelfTest;
 import org.apache.ignite.internal.GridJobSubjectIdSelfTest;
+import org.apache.ignite.internal.GridJobWithSubTasksTest;
 import org.apache.ignite.internal.GridMultipleJobsSelfTest;
 import org.apache.ignite.internal.GridMultipleSpisSelfTest;
 import org.apache.ignite.internal.GridMultipleVersionsDeploymentSelfTest;
@@ -111,6 +112,7 @@ public class IgniteComputeGridTestSuite {
         suite.addTestSuite(GridJobMasterLeaveAwareSelfTest.class);
         suite.addTestSuite(GridJobStealingSelfTest.class);
         suite.addTestSuite(GridJobSubjectIdSelfTest.class);
+        suite.addTestSuite(GridJobWithSubTasksTest.class);
         suite.addTestSuite(GridMultithreadedJobStealingSelfTest.class);
         suite.addTestSuite(GridAlwaysFailoverSpiFailSelfTest.class);
         suite.addTestSuite(GridTaskInstanceExecutionSelfTest.class);
