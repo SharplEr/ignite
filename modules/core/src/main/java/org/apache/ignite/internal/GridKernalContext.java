@@ -512,7 +512,7 @@ public interface GridKernalContext extends Iterable<GridComponent> {
      * @param executorName Executor name.
      * @return Named executor service.
      */
-    public @NotNull ExecutorService getCreateExecutorService(@Nullable String executorName);
+    public @NotNull ExecutorService getOrCreateExecutorService(@Nullable String executorName);
 
     /**
      * Return named executor service or null, if service still doesn't exist.

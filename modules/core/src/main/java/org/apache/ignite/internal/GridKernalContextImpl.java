@@ -960,7 +960,7 @@ public class GridKernalContextImpl implements GridKernalContext, Externalizable 
     private final ConcurrentHashMap<String, ExecutorService> jobExecutors = new ConcurrentHashMap<>();
 
     /** {@inheritDoc} */
-    @NotNull @Override public ExecutorService getCreateExecutorService(@Nullable final String executorName) {
+    @NotNull @Override public ExecutorService getOrCreateExecutorService(@Nullable final String executorName) {
         if (executorName == null)
             return execSvc;
         //Try to avoid create new IgniteThreadPoolExecutor

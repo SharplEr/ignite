@@ -54,7 +54,7 @@ public class GridJobWithSubTasksTest extends GridCommonAbstractTest {
             for (final ComputeTaskFuture<Integer> fut : futs)
                 taskCount += fut.get();
         }
-        //18 - magic namber
+        //18 - magic number
         assertEquals(18 * poolSize, taskCount);
         stopAllGrids();
     }

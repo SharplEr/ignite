@@ -44,6 +44,8 @@ import org.jetbrains.annotations.Nullable;
 public class GridJobExecuteRequest implements Message {
     /** */
     private static final long serialVersionUID = 0L;
+
+    /** */
     private String executorName;
 
     /** Subject ID. */

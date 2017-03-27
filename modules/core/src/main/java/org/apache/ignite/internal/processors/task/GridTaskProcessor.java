@@ -666,8 +666,8 @@ public class GridTaskProcessor extends GridProcessorAdapter {
                                 ctx.getSystemExecutorService().execute(taskWorker);
                             else {
                                 final Object executerName = map.get(EXECUTOR_NAME);
-                                if (executerName != null && executerName instanceof String)
-                                    ctx.getCreateExecutorService((String)executerName).execute(taskWorker);
+                                if (executerName != null)
+                                    ctx.getOrCreateExecutorService((String)executerName).execute(taskWorker);
                                 else
                                     ctx.getExecutorService().execute(taskWorker);
                             }

@@ -1277,7 +1277,7 @@ public class GridJobProcessor extends GridProcessorAdapter {
     private boolean executeAsync(GridJobWorker jobWorker, @Nullable String name) {
         if (name==null) return executeAsync(jobWorker);
         try {
-            ctx.getCreateExecutorService(name).execute(jobWorker);
+            ctx.getOrCreateExecutorService(name).execute(jobWorker);
 
             if (metricsUpdateFreq > -1L)
                 startedJobsCnt.increment();
