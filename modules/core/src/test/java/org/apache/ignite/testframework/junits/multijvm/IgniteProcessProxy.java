@@ -70,6 +70,8 @@ import org.apache.ignite.internal.processors.cache.IgniteInternalCache;
 import org.apache.ignite.internal.processors.hadoop.Hadoop;
 import org.apache.ignite.internal.util.GridJavaProcess;
 import org.apache.ignite.internal.util.lang.IgnitePredicateX;
+import org.apache.ignite.internal.util.lang.gridfunc.AlwaysRunning;
+import org.apache.ignite.internal.util.lang.gridfunc.IsStopping;
 import org.apache.ignite.internal.util.typedef.G;
 import org.apache.ignite.internal.util.typedef.X;
 import org.apache.ignite.internal.util.typedef.internal.A;
@@ -571,8 +573,12 @@ public class IgniteProcessProxy implements IgniteEx {
     }
 
     /** {@inheritDoc} */
-    @Override public <K, V> IgniteDataStreamer<K, V> dataStreamer(@Nullable String cacheName) {
+    @Override public <K, V> IgniteDataStreamer<K, V> dataStreamer(@Nullable String cacheName, IsStopping gate) {
         throw new UnsupportedOperationException("Operation isn't supported yet.");
+    }
+    /** {@inheritDoc} */
+    @Override public <K, V> IgniteDataStreamer<K, V> dataStreamer(String cacheName) {
+        return dataStreamer(cacheName, AlwaysRunning.INSTANCE);
     }
 
     /** {@inheritDoc} */
@@ -752,7 +758,7 @@ public class IgniteProcessProxy implements IgniteEx {
          * @param igniteInstanceName Ignite instance name.
          * @param cancel Cancel.
          */
-        public StopGridTask(String igniteInstanceName, boolean cancel) {
+        private StopGridTask(String igniteInstanceName, boolean cancel) {
             this.igniteInstanceName = igniteInstanceName;
             this.cancel = cancel;
         }

@@ -59,6 +59,8 @@ import org.apache.ignite.internal.binary.BinaryContext;
 import org.apache.ignite.internal.binary.BinaryMarshaller;
 import org.apache.ignite.internal.binary.builder.BinaryObjectBuilderImpl;
 import org.apache.ignite.internal.processors.cacheobject.NoOpBinary;
+import org.apache.ignite.internal.util.lang.gridfunc.AlwaysRunning;
+import org.apache.ignite.internal.util.lang.gridfunc.IsStopping;
 import org.apache.ignite.internal.util.typedef.internal.U;
 import org.apache.ignite.lang.IgniteProductVersion;
 import org.apache.ignite.logger.NullLogger;
@@ -81,7 +83,7 @@ public class IgniteMock implements Ignite {
     private final UUID nodeId;
 
     /** */
-    private Marshaller marshaller;
+    private final Marshaller marshaller;
 
     /** */
     private final MBeanServer jmx;
@@ -299,8 +301,13 @@ public class IgniteMock implements Ignite {
     }
 
     /** {@inheritDoc} */
-    @Override public <K, V> IgniteDataStreamer<K, V> dataStreamer(@Nullable String cacheName) {
+    @Override public <K, V> IgniteDataStreamer<K, V> dataStreamer(@Nullable String cacheName, IsStopping gate) {
         return null;
+    }
+
+    /** {@inheritDoc} */
+    @Override public <K, V> IgniteDataStreamer<K, V> dataStreamer(String cacheName) {
+        return dataStreamer(cacheName, AlwaysRunning.INSTANCE);
     }
 
     /** {@inheritDoc} */

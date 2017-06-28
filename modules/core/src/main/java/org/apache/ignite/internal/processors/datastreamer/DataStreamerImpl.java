@@ -91,6 +91,7 @@ import org.apache.ignite.internal.util.GridSpinBusyLock;
 import org.apache.ignite.internal.util.future.GridCompoundFuture;
 import org.apache.ignite.internal.util.future.GridFutureAdapter;
 import org.apache.ignite.internal.util.lang.GridPeerDeployAware;
+import org.apache.ignite.internal.util.lang.gridfunc.IsStopping;
 import org.apache.ignite.internal.util.tostring.GridToStringExclude;
 import org.apache.ignite.internal.util.tostring.GridToStringInclude;
 import org.apache.ignite.internal.util.typedef.CI1;
@@ -162,7 +163,7 @@ public class DataStreamerImpl<K, V> implements IgniteDataStreamer<K, V>, Delayed
 
     /** Mapping. */
     @GridToStringInclude
-    private ConcurrentMap<UUID, Buffer> bufMappings = new ConcurrentHashMap8<>();
+    private final ConcurrentMap<UUID, Buffer> bufMappings = new ConcurrentHashMap8<>();
 
     /** Discovery listener. */
     private final GridLocalEventListener discoLsnr;
@@ -260,6 +261,8 @@ public class DataStreamerImpl<K, V> implements IgniteDataStreamer<K, V>, Delayed
     /** */
     private final AtomicBoolean remapOwning = new AtomicBoolean();
 
+    private final IsStopping gate;
+
     /**
      * @param ctx Grid kernal context.
      * @param cacheName Cache name.
@@ -268,12 +271,14 @@ public class DataStreamerImpl<K, V> implements IgniteDataStreamer<K, V>, Delayed
     public DataStreamerImpl(
         final GridKernalContext ctx,
         @Nullable final String cacheName,
-        DelayQueue<DataStreamerImpl<K, V>> flushQ
+        DelayQueue<DataStreamerImpl<K, V>> flushQ,
+        IsStopping gate
     ) {
         assert ctx != null;
 
         this.ctx = ctx;
         this.cacheObjProc = ctx.cacheObjects();
+        this.gate = gate;
 
         if (log == null)
             log = U.logger(ctx, logRef, DataStreamerImpl.class);
@@ -1108,7 +1113,7 @@ public class DataStreamerImpl<K, V> implements IgniteDataStreamer<K, V>, Delayed
                     break;
             }
 
-            if (doneCnt == activeFuts0.size())
+            if (doneCnt == activeFuts0.size() || gate.isStopping())
                 return;
         }
     }
@@ -1849,7 +1854,7 @@ public class DataStreamerImpl<K, V> implements IgniteDataStreamer<K, V>, Delayed
         private ClassLoader ldr;
 
         /** Collection of objects to detect deploy class and class loader. */
-        private Collection<Object> objs;
+        private final Collection<Object> objs;
 
         /**
          * Constructs data streamer peer-deploy aware.

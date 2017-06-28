@@ -110,19 +110,19 @@ public class IgfsDataManager extends IgfsManager {
     private int grpSize;
 
     /** Byte buffer writer. */
-    private ByteBufferBlocksWriter byteBufWriter = new ByteBufferBlocksWriter();
+    private final ByteBufferBlocksWriter byteBufWriter = new ByteBufferBlocksWriter();
 
     /** Data input writer. */
-    private DataInputBlocksWriter dataInputWriter = new DataInputBlocksWriter();
+    private final DataInputBlocksWriter dataInputWriter = new DataInputBlocksWriter();
 
     /** Pending writes future. */
-    private ConcurrentMap<IgniteUuid, WriteCompletionFuture> pendingWrites = new ConcurrentHashMap8<>();
+    private final ConcurrentMap<IgniteUuid, WriteCompletionFuture> pendingWrites = new ConcurrentHashMap8<>();
 
     /** Affinity key generator. */
-    private AtomicLong affKeyGen = new AtomicLong();
+    private final AtomicLong affKeyGen = new AtomicLong();
 
     /** Request ID counter for write messages. */
-    private AtomicLong reqIdCtr = new AtomicLong();
+    private final AtomicLong reqIdCtr = new AtomicLong();
 
     /** IGFS communication topic. */
     private Object topic;
@@ -1463,7 +1463,7 @@ public class IgfsDataManager extends IgfsManager {
         private final IgfsEntryInfo stopInfo;
 
         /** Delete requests queue. */
-        private BlockingQueue<IgniteBiTuple<GridFutureAdapter<Object>, IgfsEntryInfo>> delReqs =
+        private final BlockingQueue<IgniteBiTuple<GridFutureAdapter<Object>, IgfsEntryInfo>> delReqs =
             new LinkedBlockingQueue<>();
 
         /**
