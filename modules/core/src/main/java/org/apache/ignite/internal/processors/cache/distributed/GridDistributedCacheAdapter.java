@@ -343,7 +343,7 @@ public abstract class GridDistributedCacheAdapter<K, V> extends GridCacheAdapter
          * @param topVer Affinity topology version.
          * @param skipStore Skip store flag.
          */
-        public RemoveAllTask(String cacheName, AffinityTopologyVersion topVer, boolean skipStore, boolean keepBinary) {
+        private RemoveAllTask(String cacheName, AffinityTopologyVersion topVer, boolean skipStore, boolean keepBinary) {
             this.cacheName = cacheName;
             this.topVer = topVer;
             this.skipStore = skipStore;
@@ -444,7 +444,7 @@ public abstract class GridDistributedCacheAdapter<K, V> extends GridCacheAdapter
                     dht = (GridDhtCacheAdapter<K, V>) cache;
 
                 try (DataStreamerImpl<KeyCacheObject, Object> dataLdr =
-                         (DataStreamerImpl) ignite.dataStreamer(cacheName)) {
+                         (DataStreamerImpl) ignite.dataStreamer(cacheName, ctx.gate())) {
                     ((DataStreamerImpl) dataLdr).maxRemapCount(0);
 
                     dataLdr.skipStore(skipStore);

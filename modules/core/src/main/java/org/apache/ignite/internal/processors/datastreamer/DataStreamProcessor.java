@@ -33,6 +33,8 @@ import org.apache.ignite.internal.processors.cache.distributed.dht.GridDhtTopolo
 import org.apache.ignite.internal.util.GridConcurrentHashSet;
 import org.apache.ignite.internal.util.GridSpinBusyLock;
 import org.apache.ignite.internal.util.future.GridFutureAdapter;
+import org.apache.ignite.internal.util.lang.gridfunc.AlwaysRunning;
+import org.apache.ignite.internal.util.lang.gridfunc.IsStopping;
 import org.apache.ignite.internal.util.typedef.CI1;
 import org.apache.ignite.internal.util.typedef.X;
 import org.apache.ignite.internal.util.typedef.internal.U;
@@ -57,7 +59,7 @@ import static org.apache.ignite.internal.managers.communication.GridIoPolicy.DAT
  */
 public class DataStreamProcessor<K, V> extends GridProcessorAdapter {
     /** Loaders map (access is not supposed to be highly concurrent). */
-    private Collection<DataStreamerImpl> ldrs = new GridConcurrentHashSet<>();
+    private final Collection<DataStreamerImpl> ldrs = new GridConcurrentHashSet<>();
 
     /** Busy lock. */
     private final GridSpinBusyLock busyLock = new GridSpinBusyLock();
@@ -173,11 +175,20 @@ public class DataStreamProcessor<K, V> extends GridProcessorAdapter {
      * @return Data loader.
      */
     public DataStreamerImpl<K, V> dataStreamer(@Nullable String cacheName) {
+        return dataStreamer(cacheName, AlwaysRunning.INSTANCE);
+    }
+
+    /**
+     * @param cacheName Cache name ({@code null} for default cache).
+     * @param gate Gateway.
+     * @return Data loader.
+     */
+    public DataStreamerImpl<K, V> dataStreamer(@Nullable String cacheName, IsStopping gate) {
         if (!busyLock.enterBusy())
             throw new IllegalStateException("Failed to create data streamer (grid is stopping).");
 
         try {
-            final DataStreamerImpl<K, V> ldr = new DataStreamerImpl<>(ctx, cacheName, flushQ);
+            final DataStreamerImpl<K, V> ldr = new DataStreamerImpl<>(ctx, cacheName, flushQ, gate);
 
             ldrs.add(ldr);
 

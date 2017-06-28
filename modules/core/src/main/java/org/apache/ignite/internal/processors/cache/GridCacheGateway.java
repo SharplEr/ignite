@@ -26,6 +26,7 @@ import org.apache.ignite.IgniteClientDisconnectedException;
 import org.apache.ignite.IgniteException;
 import org.apache.ignite.internal.IgniteInterruptedCheckedException;
 import org.apache.ignite.internal.util.StripedCompositeReadWriteLock;
+import org.apache.ignite.internal.util.lang.gridfunc.IsStopping;
 import org.apache.ignite.internal.util.tostring.GridToStringExclude;
 import org.apache.ignite.internal.util.typedef.internal.CU;
 import org.apache.ignite.internal.util.typedef.internal.U;
@@ -36,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
  * Cache gateway.
  */
 @GridToStringExclude
-public class GridCacheGateway<K, V> {
+public class GridCacheGateway<K, V> implements IsStopping {
     /** Context. */
     private final GridCacheContext<K, V> ctx;
 
@@ -47,8 +48,11 @@ public class GridCacheGateway<K, V> {
     private IgniteFuture<?> reconnectFut;
 
     /** */
-    private StripedCompositeReadWriteLock rwLock =
+    private final StripedCompositeReadWriteLock rwLock =
         new StripedCompositeReadWriteLock(Runtime.getRuntime().availableProcessors());
+
+    /** */
+    private volatile boolean isStopping = false;
 
     /**
      * @param ctx Cache context.
@@ -294,6 +298,10 @@ public class GridCacheGateway<K, V> {
         state.compareAndSet(State.DISCONNECTED, newState);
     }
 
+    @Override
+    public boolean isStopping() {
+        return isStopping;
+    }
     /**
      *
      */
@@ -304,18 +312,22 @@ public class GridCacheGateway<K, V> {
             try {
                 if (rwLock.writeLock().tryLock(200, TimeUnit.MILLISECONDS))
                     break;
-                else
+                else {
+                    // In case when some thread keep lock.
+                    isStopping = true;
                     U.sleep(200);
+                }
             }
             catch (IgniteInterruptedCheckedException | InterruptedException ignore) {
                 interrupted = true;
             }
         }
-
-        if (interrupted)
-            Thread.currentThread().interrupt();
-
         try {
+            isStopping = false;
+
+            if (interrupted)
+                Thread.currentThread().interrupt();
+
             state.set(State.STOPPED);
         }
         finally {

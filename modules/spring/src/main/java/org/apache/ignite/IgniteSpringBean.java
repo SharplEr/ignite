@@ -29,6 +29,8 @@ import org.apache.ignite.configuration.CacheConfiguration;
 import org.apache.ignite.configuration.CollectionConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.configuration.NearCacheConfiguration;
+import org.apache.ignite.internal.util.lang.gridfunc.AlwaysRunning;
+import org.apache.ignite.internal.util.lang.gridfunc.IsStopping;
 import org.apache.ignite.internal.util.typedef.G;
 import org.apache.ignite.internal.util.typedef.internal.S;
 import org.apache.ignite.lang.IgniteProductVersion;
@@ -400,10 +402,15 @@ public class IgniteSpringBean implements Ignite, DisposableBean, InitializingBea
     }
 
     /** {@inheritDoc} */
-    @Override public <K, V> IgniteDataStreamer<K, V> dataStreamer(@Nullable String cacheName) {
+    @Override public <K, V> IgniteDataStreamer<K, V> dataStreamer(@Nullable String cacheName, IsStopping gate) {
         checkIgnite();
 
-        return g.dataStreamer(cacheName);
+        return g.dataStreamer(cacheName, gate);
+    }
+
+    /** {@inheritDoc} */
+    @Override public <K, V> IgniteDataStreamer<K, V> dataStreamer(@Nullable String cacheName) {
+        return dataStreamer(cacheName, AlwaysRunning.INSTANCE);
     }
 
     /** {@inheritDoc} */

@@ -153,6 +153,8 @@ import org.apache.ignite.internal.util.future.GridFinishedFuture;
 import org.apache.ignite.internal.util.future.GridFutureAdapter;
 import org.apache.ignite.internal.util.future.IgniteFutureImpl;
 import org.apache.ignite.internal.util.lang.GridAbsClosure;
+import org.apache.ignite.internal.util.lang.gridfunc.AlwaysRunning;
+import org.apache.ignite.internal.util.lang.gridfunc.IsStopping;
 import org.apache.ignite.internal.util.tostring.GridToStringExclude;
 import org.apache.ignite.internal.util.typedef.C1;
 import org.apache.ignite.internal.util.typedef.CI1;
@@ -323,7 +325,7 @@ public class IgniteKernal implements IgniteEx, IgniteMXBean, Externalizable {
     private long startTime = U.currentTimeMillis();
 
     /** Spring context, potentially {@code null}. */
-    private GridSpringResourceContext rsrcCtx;
+    private final GridSpringResourceContext rsrcCtx;
 
     /** */
     @GridToStringExclude
@@ -2464,7 +2466,7 @@ public class IgniteKernal implements IgniteEx, IgniteMXBean, Externalizable {
                 String memPlcName = U.maskName(c.getMemoryPolicyName());
 
                 if (!memPlcNamesMapping.containsKey(memPlcName))
-                    memPlcNamesMapping.put(memPlcName, new ArrayList<String>());
+                    memPlcNamesMapping.put(memPlcName, new ArrayList<>());
 
                 ArrayList<String> cacheNames = memPlcNamesMapping.get(memPlcName);
 
@@ -3236,6 +3238,11 @@ public class IgniteKernal implements IgniteEx, IgniteMXBean, Externalizable {
 
     /** {@inheritDoc} */
     @Override public <K, V> IgniteDataStreamer<K, V> dataStreamer(String cacheName) {
+        return dataStreamer(cacheName, AlwaysRunning.INSTANCE);
+    }
+
+    /** {@inheritDoc} */
+    @Override public <K, V> IgniteDataStreamer<K, V> dataStreamer(String cacheName,  IsStopping gate) {
         CU.validateCacheName(cacheName);
 
         guard();
@@ -3243,7 +3250,7 @@ public class IgniteKernal implements IgniteEx, IgniteMXBean, Externalizable {
         try {
             checkClusterState();
 
-            return ctx.<K, V>dataStream().dataStreamer(cacheName);
+            return ctx.<K, V>dataStream().dataStreamer(cacheName, gate);
         }
         finally {
             unguard();

@@ -52,6 +52,8 @@ import org.apache.ignite.internal.cluster.IgniteClusterEx;
 import org.apache.ignite.internal.processors.cache.GridCacheUtilityKey;
 import org.apache.ignite.internal.processors.cache.IgniteInternalCache;
 import org.apache.ignite.internal.processors.hadoop.Hadoop;
+import org.apache.ignite.internal.util.lang.gridfunc.AlwaysRunning;
+import org.apache.ignite.internal.util.lang.gridfunc.IsStopping;
 import org.apache.ignite.internal.util.typedef.F;
 import org.apache.ignite.lang.IgniteBiTuple;
 import org.apache.ignite.lang.IgnitePredicate;
@@ -405,10 +407,15 @@ public class IgfsIgniteMock implements IgniteEx {
     }
 
     /** {@inheritDoc} */
-    @Override public <K, V> IgniteDataStreamer<K, V> dataStreamer(@Nullable String cacheName) {
+    @Override public <K, V> IgniteDataStreamer<K, V> dataStreamer(@Nullable String cacheName, IsStopping gate) {
         throwUnsupported();
 
         return null;
+    }
+
+    /** {@inheritDoc} */
+    @Override public <K, V> IgniteDataStreamer<K, V> dataStreamer(String cacheName) {
+        return dataStreamer(cacheName, AlwaysRunning.INSTANCE);
     }
 
     /** {@inheritDoc} */

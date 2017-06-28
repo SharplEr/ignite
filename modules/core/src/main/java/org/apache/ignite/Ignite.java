@@ -30,6 +30,7 @@ import org.apache.ignite.configuration.IgniteConfiguration;
 import org.apache.ignite.configuration.MemoryConfiguration;
 import org.apache.ignite.configuration.MemoryPolicyConfiguration;
 import org.apache.ignite.configuration.NearCacheConfiguration;
+import org.apache.ignite.internal.util.lang.gridfunc.IsStopping;
 import org.apache.ignite.internal.util.typedef.G;
 import org.apache.ignite.lang.IgniteProductVersion;
 import org.apache.ignite.plugin.IgnitePlugin;
@@ -398,6 +399,18 @@ public interface Ignite extends AutoCloseable {
      * @return Grid transactions facade.
      */
     public IgniteTransactions transactions();
+
+    /**
+     * Gets a new instance of data streamer associated with given cache name. Data streamer
+     * is responsible for loading external data into in-memory data grid. For more information
+     * refer to {@link IgniteDataStreamer} documentation.
+     *
+     * @param cacheName Cache name.
+     * @param gate gateway.
+     * @return Data streamer.
+     * @throws IllegalStateException If node is stopping.
+     */
+    public <K, V> IgniteDataStreamer<K, V> dataStreamer(String cacheName, IsStopping gate) throws IllegalStateException;
 
     /**
      * Gets a new instance of data streamer associated with given cache name. Data streamer
