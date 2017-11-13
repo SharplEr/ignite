@@ -276,8 +276,20 @@ public class CacheMetricsImpl implements CacheMetrics {
     }
 
     /** {@inheritDoc} */
+    @Override public long getSizeLong() {
+        GridCacheAdapter<?, ?> cache = cctx.cache();
+
+        return cache != null ? cache.sizeLong() : 0L;
+    }
+
+    /** {@inheritDoc} */
     @Override public int getKeySize() {
         return getSize();
+    }
+
+    /** {@inheritDoc} */
+    @Override public long getKeySizeLong() {
+        return getSizeLong();
     }
 
     /** {@inheritDoc} */
