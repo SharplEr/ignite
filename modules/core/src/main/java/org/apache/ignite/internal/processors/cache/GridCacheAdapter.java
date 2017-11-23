@@ -3812,22 +3812,12 @@ public abstract class GridCacheAdapter<K, V> implements IgniteInternalCache<K, V
 
     /** {@inheritDoc} */
     @Override public int localSize(CachePeekMode[] peekModes) throws IgniteCheckedException {
-        long size = localSizeLong(peekModes);
-
-        if (size > Integer.MAX_VALUE)
-            return Integer.MAX_VALUE;
-
-        return (int)size;
+        return U.convertToInt(localSizeLong(peekModes));
     }
 
     /** {@inheritDoc} */
     @Override public int size() {
-        long size = map.publicSize(ctx.cacheId());
-
-        if (size > Integer.MAX_VALUE)
-            return Integer.MAX_VALUE;
-
-        return (int)size;
+        return U.convertToInt(map.publicSize(ctx.cacheId()));
     }
 
     /** {@inheritDoc} */
@@ -3842,12 +3832,7 @@ public abstract class GridCacheAdapter<K, V> implements IgniteInternalCache<K, V
 
     /** {@inheritDoc} */
     @Override public int primarySize() {
-        long size = map.publicSize(ctx.cacheId());
-
-        if (size > Integer.MAX_VALUE)
-            return Integer.MAX_VALUE;
-
-        return (int)size;
+        return U.convertToInt(map.publicSize(ctx.cacheId()));
     }
 
     /** {@inheritDoc} */
