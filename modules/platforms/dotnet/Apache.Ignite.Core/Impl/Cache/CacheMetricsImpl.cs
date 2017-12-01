@@ -116,6 +116,12 @@ namespace Apache.Ignite.Core.Impl.Cache
         private readonly int _keySize;
 
         /** */
+        private readonly long _sizeLong;
+
+        /** */
+        private readonly long _keySizeLong;
+
+        /** */
         private readonly bool _isEmpty;
 
         /** */
@@ -246,7 +252,9 @@ namespace Apache.Ignite.Core.Impl.Cache
             _offHeapBackupEntriesCount = reader.ReadLong();
             _offHeapAllocatedSize = reader.ReadLong();
             _size = reader.ReadInt();
+            _sizeLong = reader.ReadLong();
             _keySize = reader.ReadInt();
+            _keySizeLong = reader.ReadLong();
             _isEmpty = reader.ReadBoolean();
             _dhtEvictQueueCurrentSize = reader.ReadInt();
             _txThreadMapSize = reader.ReadInt();
@@ -369,7 +377,13 @@ namespace Apache.Ignite.Core.Impl.Cache
         public int Size { get { return _size; } }
 
         /** <inheritDoc /> */
+        public long SizeLong { get { return _sizeLong; } }
+
+        /** <inheritDoc /> */
         public int KeySize { get { return _keySize; } }
+
+        /** <inheritDoc /> */
+        public long KeySizeLong { get { return _keySizeLong; } }
 
         /** <inheritDoc /> */
         public bool IsEmpty { get { return _isEmpty; } }
