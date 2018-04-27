@@ -860,8 +860,7 @@ public class ServerImpl extends TcpDiscoveryImpl {
         return nodeAlive;
     }
 
-
-//    public static final GridFutureAdapter<ClusterNode> futureAdapter = new GridFutureAdapter<>();
+    public static final GridFutureAdapter<ServerImpl> fut = new GridFutureAdapter<>();
     public static final CountDownLatch latch = new CountDownLatch(1);
 
     final AtomicBoolean flag = new AtomicBoolean(false);
@@ -902,7 +901,9 @@ public class ServerImpl extends TcpDiscoveryImpl {
                 if (!auth && spi.nodeAuth != null)
                     localAuthentication(locCred);
 
-                System.out.println("!!!~ opa" + locNode.internalOrder());
+
+                boolean flag = locNode.internalOrder() > 2;
+                System.out.println("!!!~ node " + locNode.internalOrder() + " going to be fail.");
 
                 locNode.order(1);
                 locNode.internalOrder(1);
@@ -911,14 +912,18 @@ public class ServerImpl extends TcpDiscoveryImpl {
 
                 locNode.visible(true);
 
-//                futureAdapter.onDone(locNode);
-//
-//                try {
-//                    latch.await();
-//                }
-//                catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
+                if (flag && latch.getCount() > 0) {
+
+
+                    fut.onDone(this);
+
+                    try {
+                        latch.await();
+                    }
+                    catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
 
                 ring.clear();
 
