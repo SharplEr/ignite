@@ -53,9 +53,11 @@ import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLServerSocket;
@@ -178,7 +180,7 @@ import static org.apache.ignite.spi.discovery.tcp.messages.TcpDiscoveryStatusChe
 /**
  *
  */
-class ServerImpl extends TcpDiscoveryImpl {
+public class ServerImpl extends TcpDiscoveryImpl {
     /** */
     private static final int ENSURED_MSG_HIST_SIZE = getInteger(IGNITE_DISCOVERY_CLIENT_RECONNECT_HISTORY_SIZE, 512);
 
@@ -858,6 +860,12 @@ class ServerImpl extends TcpDiscoveryImpl {
         return nodeAlive;
     }
 
+
+//    public static final GridFutureAdapter<ClusterNode> futureAdapter = new GridFutureAdapter<>();
+    public static final CountDownLatch latch = new CountDownLatch(1);
+
+    final AtomicBoolean flag = new AtomicBoolean(false);
+
     /**
      * Tries to join this node to topology.
      *
@@ -894,12 +902,23 @@ class ServerImpl extends TcpDiscoveryImpl {
                 if (!auth && spi.nodeAuth != null)
                     localAuthentication(locCred);
 
+                System.out.println("!!!~ opa" + locNode.internalOrder());
+
                 locNode.order(1);
                 locNode.internalOrder(1);
 
                 spi.gridStartTime = U.currentTimeMillis();
 
                 locNode.visible(true);
+
+//                futureAdapter.onDone(locNode);
+//
+//                try {
+//                    latch.await();
+//                }
+//                catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
 
                 ring.clear();
 
