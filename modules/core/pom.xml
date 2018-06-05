@@ -453,7 +453,7 @@
                                         <artifactItem>
                                             <groupId>javax.cache</groupId>
                                             <artifactId>app-domain</artifactId>
-                                            <version>${javax.cache.tck.version}</version>
+                                            <version>${javax.cache.version}</version>
                                             <outputDirectory>${domain-lib-dir}</outputDirectory>
                                             <destFileName>${domain-jar}</destFileName>
                                         </artifactItem>
