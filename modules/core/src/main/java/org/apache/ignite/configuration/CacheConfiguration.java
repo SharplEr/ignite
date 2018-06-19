@@ -626,6 +626,15 @@ public class CacheConfiguration<K, V> extends MutableConfiguration<K, V> {
      */
     public CacheConfiguration<K, V> setEvictionPolicyFactory(
         @Nullable Factory<? extends EvictionPolicy<? super K, ? super V>> evictPlcFactory) {
+        if (this.evictPlcFactory != null && this.evictPlcFactory instanceof Closeable) {
+            try {
+                ((Closeable) this.evictPlcFactory).close();
+            }
+            catch (IOException e) {
+                // No-op.
+            }
+        }
+
         if (evictPlcFactory instanceof Closeable)
             this.evictPlcFactory = evictPlcFactory;
         else
@@ -897,6 +906,15 @@ public class CacheConfiguration<K, V> extends MutableConfiguration<K, V> {
     @SuppressWarnings("unchecked")
     public CacheConfiguration<K, V> setCacheStoreFactory(
         Factory<? extends CacheStore<? super K, ? super V>> storeFactory) {
+        if (this.storeFactory != null && this.storeFactory instanceof Closeable) {
+            try {
+                ((Closeable) this.storeFactory).close();
+            }
+            catch (IOException e) {
+                // No-op.
+            }
+        }
+
         if (storeFactory instanceof Closeable)
             this.storeFactory = storeFactory;
         else
@@ -2121,6 +2139,19 @@ public class CacheConfiguration<K, V> extends MutableConfiguration<K, V> {
      */
     public CacheConfiguration<K, V> setCacheStoreSessionListenerFactories(
         Factory<? extends CacheStoreSessionListener>... storeSesLsnrs) {
+        if (this.storeSesLsnrs != null) {
+            for (Factory<? extends CacheStoreSessionListener> factory : this.storeSesLsnrs) {
+                if (factory instanceof Closeable) {
+                    try {
+                        ((Closeable) factory).close();
+                    }
+                    catch (IOException e) {
+                        // No-op.
+                    }
+                }
+            }
+        }
+
         for (int i = 0; i < storeSesLsnrs.length; i++) {
             if (!(storeSesLsnrs[i] instanceof Closeable))
                 storeSesLsnrs[i] = new CloseableFactory<>(storeSesLsnrs[i]);
@@ -2166,14 +2197,13 @@ public class CacheConfiguration<K, V> extends MutableConfiguration<K, V> {
     /** {@inheritDoc} */
     @Override public MutableConfiguration<K, V> removeCacheEntryListenerConfiguration(
         CacheEntryListenerConfiguration<K, V> cacheEntryLsnrCfg) {
-        System.out.println("!!!~ ops!");
         synchronized (this) {
             if (cacheEntryLsnrCfg.getCacheEntryEventFilterFactory() instanceof Closeable) {
                 try {
                     ((Closeable) cacheEntryLsnrCfg.getCacheEntryEventFilterFactory()).close();
                 }
                 catch (IOException e) {
-                    //
+                    // No-op.
                 }
             }
 
@@ -2182,7 +2212,7 @@ public class CacheConfiguration<K, V> extends MutableConfiguration<K, V> {
                     ((Closeable) cacheEntryLsnrCfg.getCacheEntryListenerFactory()).close();
                 }
                 catch (IOException e) {
-                    //
+                    // No-op.
                 }
             }
 
@@ -2231,6 +2261,15 @@ public class CacheConfiguration<K, V> extends MutableConfiguration<K, V> {
 
     /** {@inheritDoc} */
     @Override public CacheConfiguration<K, V> setCacheLoaderFactory(Factory<? extends CacheLoader<K, V>> factory) {
+        if (super.getCacheLoaderFactory() != null && super.getCacheLoaderFactory() instanceof Closeable) {
+            try {
+                ((Closeable) super.getCacheLoaderFactory()).close();
+            }
+            catch (IOException e) {
+                // No-op.
+            }
+        }
+
         if (!(factory instanceof Closeable))
             factory = new CloseableFactory<>(factory);
 
@@ -2242,6 +2281,15 @@ public class CacheConfiguration<K, V> extends MutableConfiguration<K, V> {
     /** {@inheritDoc} */
     @Override public CacheConfiguration<K, V> setCacheWriterFactory(
         Factory<? extends CacheWriter<? super K, ? super V>> factory) {
+        if (super.getCacheWriterFactory() != null && super.getCacheWriterFactory() instanceof Closeable) {
+            try {
+                ((Closeable) super.getCacheWriterFactory()).close();
+            }
+            catch (IOException e) {
+                // No-op.
+            }
+        }
+
         if (!(factory instanceof Closeable))
             factory = new CloseableFactory<>(factory);
 
@@ -2252,6 +2300,15 @@ public class CacheConfiguration<K, V> extends MutableConfiguration<K, V> {
 
     /** {@inheritDoc} */
     @Override public CacheConfiguration<K, V> setExpiryPolicyFactory(Factory<? extends ExpiryPolicy> factory) {
+        if (super.getExpiryPolicyFactory() != null && super.getExpiryPolicyFactory() instanceof Closeable) {
+            try {
+                ((Closeable) super.getExpiryPolicyFactory()).close();
+            }
+            catch (IOException e) {
+                // No-op.
+            }
+        }
+
         if (!(factory instanceof Closeable))
             factory = new CloseableFactory<>(factory);
 

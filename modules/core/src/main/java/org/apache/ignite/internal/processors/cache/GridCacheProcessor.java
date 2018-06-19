@@ -619,7 +619,6 @@ public class GridCacheProcessor extends GridProcessorAdapter {
             (Iterable<CacheEntryListenerConfiguration<?, ?>>) cfg.getCacheEntryListenerConfigurations()) {
 
             if (c.getCacheEntryListenerFactory() instanceof Closeable) {
-
                 try {
                     ((Closeable) c.getCacheEntryListenerFactory()).close();
                 }
@@ -696,10 +695,16 @@ public class GridCacheProcessor extends GridProcessorAdapter {
 
             try {
                 ctx.resource().cleanupGeneric(rsrc);
-                if (rsrc instanceof Closeable)
-                    ((Closeable) rsrc).close();
+                if (rsrc instanceof Closeable) {
+                    try {
+                        ((Closeable) rsrc).close();
+                    }
+                    catch (IOException e) {
+                        // No-op.
+                    }
+                }
             }
-            catch (IgniteCheckedException | IOException e) {
+            catch (IgniteCheckedException e) {
                 U.error(log, "Failed to cleanup resource: " + rsrc, e);
             }
         }
@@ -1344,6 +1349,7 @@ public class GridCacheProcessor extends GridProcessorAdapter {
             }
         }
         finally {
+            System.out.println("!!!~ close cache "+ctx.name());
             cleanup(ctx);
         }
     }
